@@ -121,6 +121,9 @@ describe('svg export', () => {
     const svg = sheetToSvg(sheet);
     expect(svg).toMatch(/width="[\d.]+mm"/);
     expect(svg.match(/<path /g)).toHaveLength(result.cutParts!.length);
+    expect(svg).toContain('inkscape:label="Labels"');
+    expect(svg.match(/<text /g)).toHaveLength(result.cutParts!.length);
+    expect(svg).toContain('>Cabinet Back</text>');
     for (const { part, dx, dy } of sheet.placed) {
       for (const p of part.outline) {
         expect(p.x + dx).toBeGreaterThanOrEqual(0);

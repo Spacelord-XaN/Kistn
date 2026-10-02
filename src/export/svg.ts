@@ -52,7 +52,35 @@ function escapeXml(s: string): string {
   return s.replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' })[c]!);
 }
 
-/** Serializes the sheet as an SVG in millimetres with red hairline cut paths. */
+/** Approximate advance width of a glyph relative to the font size. */
+const CHAR_WIDTH = 0.6;
+const MAX_FONT_SIZE = 6;
+const MIN_FONT_SIZE = 1.5;
+
+/**
+ * A text label centred on the part's bounding box, sized to fit inside it and
+ * rotated a quarter turn for parts that are taller than wide.
+ */
+function labelText({ part, dx, dy }: PlacedPart): string {
+  const b = bounds([part.outline]);
+  const w = b.maxX - b.minX;
+  const h = b.maxY - b.minY;
+  const vertical = h > w;
+  const along = (vertical ? h : w) * 0.8;
+  const across = (vertical ? w : h) * 0.5;
+  const size = Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, across, along / (part.name.length * CHAR_WIDTH)));
+  const cx = (b.minX + b.maxX) / 2 + dx;
+  const cy = (b.minY + b.maxY) / 2 + dy;
+  // Shift the baseline down by roughly half the cap height to centre the text
+  // vertically; dominant-baseline is not honoured by all laser software.
+  const transform = vertical ? ` transform="rotate(-90 ${fmt(cx)} ${fmt(cy)})"` : '';
+  return `  <text x="${fmt(cx)}" y="${fmt(cy + size * 0.35)}" font-size="${fmt(size)}"${transform}>${escapeXml(part.name)}</text>`;
+}
+
+/**
+ * Serializes the sheet as an SVG in millimetres with two Inkscape layers: red
+ * hairline cut paths and blue part-name labels (for engraving, or to hide).
+ */
 export function sheetToSvg(sheet: Sheet): string {
   const groups = sheet.placed.map(({ part, dx, dy }) => {
     const polys = [part.outline, ...part.holes].map((p) => translate(p, dx, dy));
@@ -61,9 +89,12 @@ export function sheetToSvg(sheet: Sheet): string {
   });
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${fmt(sheet.width)}mm" height="${fmt(sheet.height)}mm" viewBox="0 0 ${fmt(sheet.width)} ${fmt(sheet.height)}">`,
-    '<g fill="none" stroke="#ff0000" stroke-width="0.1">',
+    `<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="${fmt(sheet.width)}mm" height="${fmt(sheet.height)}mm" viewBox="0 0 ${fmt(sheet.width)} ${fmt(sheet.height)}">`,
+    '<g id="cut" inkscape:groupmode="layer" inkscape:label="Cut" fill="none" stroke="#ff0000" stroke-width="0.1">',
     ...groups,
+    '</g>',
+    '<g id="labels" inkscape:groupmode="layer" inkscape:label="Labels" fill="#0000ff" stroke="none" font-family="sans-serif" text-anchor="middle">',
+    ...sheet.placed.map(labelText),
     '</g>',
     '</svg>',
     '',
