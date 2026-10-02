@@ -6,10 +6,17 @@ describe('parseStars', () => {
     expect(parseStars('1*, 2*,*, 0.5*')).toEqual([1, 2, 1, 0.5]);
   });
 
+  it('treats plain numbers as star weights', () => {
+    expect(parseStars('1, 2, 0.5')).toEqual([1, 2, 0.5]);
+    expect(parseStars('100, 1*')).toEqual([100, 1]);
+  });
+
   it('rejects non-star sizes', () => {
-    expect(() => parseStars('100')).toThrow(/not a star size/);
     expect(() => parseStars('Auto')).toThrow(/not a star size/);
+    expect(() => parseStars('1,,2')).toThrow(/not a star size/);
     expect(() => parseStars('0*')).toThrow(/positive/);
+    expect(() => parseStars('0')).toThrow(/positive/);
+    expect(() => parseStars('.')).toThrow(/positive/);
     expect(() => parseStars('')).toThrow(/empty/);
   });
 });

@@ -53,7 +53,7 @@ describe('parseConfig', () => {
       /unknown attribute "Colour"/,
     );
     expect(
-      parse(`<Cabinet Width="300" Height="200" Depth="150"><Grid RowDefinitions="100,*"/></Cabinet>`).errors.join(),
+      parse(`<Cabinet Width="300" Height="200" Depth="150"><Grid RowDefinitions="Auto,*"/></Cabinet>`).errors.join(),
     ).toMatch(/not a star size/);
   });
 

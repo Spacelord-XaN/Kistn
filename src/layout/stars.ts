@@ -1,6 +1,7 @@
 /**
- * Parses a WPF-style star definition list such as "1*, 2*, *".
- * Only star sizes are supported. Throws with a readable message on bad input.
+ * Parses a WPF-style star definition list such as "1*, 2*, *". The star is
+ * optional, so "1, 2, 1" is the same as "1*, 2*, 1*"; every size is a
+ * relative weight. Throws with a readable message on bad input.
  */
 export function parseStars(text: string): number[] {
   const parts = text.split(',').map((p) => p.trim());
@@ -8,8 +9,10 @@ export function parseStars(text: string): number[] {
     throw new Error('Definition list is empty');
   }
   return parts.map((p) => {
-    const m = /^(\d*\.?\d*)\s*\*$/.exec(p);
-    if (!m) throw new Error(`"${p}" is not a star size (use e.g. "1*", "2*", "*")`);
+    const m = /^(\d*\.?\d*)\s*(\*?)$/.exec(p);
+    if (!m || (m[1] === '' && m[2] === '')) {
+      throw new Error(`"${p}" is not a star size (use e.g. "1", "2*", "*")`);
+    }
     const weight = m[1] === '' ? 1 : Number(m[1]);
     if (!Number.isFinite(weight) || weight <= 0) {
       throw new Error(`"${p}" must have a positive weight`);
