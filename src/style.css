@@ -217,3 +217,80 @@ main {
     border-bottom: 1px solid var(--border);
   }
 }
+
+.title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+button.version {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+button.version:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+#notes {
+  width: min(40rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 4rem);
+  padding: 0.5rem 1.5rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+}
+
+#notes::backdrop {
+  background: rgb(0 0 0 / 0.4);
+}
+
+.notes-close {
+  position: sticky;
+  top: 0;
+  float: right;
+}
+
+.notes-close button {
+  padding: 0.1rem 0.5rem;
+  font-size: 1.1rem;
+}
+
+#notes-body h1 {
+  font-size: 1.2rem;
+  margin: 0.6rem 0 1rem;
+}
+
+#notes-body h2 {
+  font-size: 1rem;
+  margin: 1.2rem 0 0.4rem;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+#notes-body h3 {
+  font-size: 0.85rem;
+  margin: 0.8rem 0 0.3rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+#notes-body ul {
+  margin: 0;
+  padding-left: 1.2rem;
+  line-height: 1.5;
+}
+
+#notes-body code {
+  font-size: 0.9em;
+  padding: 0 0.2em;
+  border-radius: 3px;
+  background: var(--bg);
+}

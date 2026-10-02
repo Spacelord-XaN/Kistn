@@ -4,6 +4,8 @@ import { EXAMPLE_XML } from './example';
 import { generate, GenerateResult } from './generate';
 import { frontViewSvg } from './preview/frontView';
 import { layoutParts, sheetToSvg } from './export/svg';
+import { renderChangelog } from './changelog';
+import changelog from '../CHANGELOG.md?raw';
 
 const STORAGE_KEY = 'boxgen.xml';
 const UPDATE_DELAY_MS = 250;
@@ -109,6 +111,18 @@ exportBtn.addEventListener('click', () => {
   if (!current.cutParts || !current.config) return;
   const sheet = layoutParts(current.cutParts, current.config.export);
   download('boxgen.svg', sheetToSvg(sheet), 'image/svg+xml');
+});
+
+const versionBtn = $<HTMLButtonElement>('version');
+const notesDialog = $<HTMLDialogElement>('notes');
+versionBtn.textContent = __APP_VERSION__.replace(/^v(?=\d)/, '');
+versionBtn.addEventListener('click', () => {
+  $('notes-body').innerHTML = renderChangelog(changelog);
+  notesDialog.showModal();
+});
+// Close when clicking the backdrop outside the dialog box.
+notesDialog.addEventListener('click', (e) => {
+  if (e.target === notesDialog) notesDialog.close();
 });
 
 update(view.state.doc.toString());

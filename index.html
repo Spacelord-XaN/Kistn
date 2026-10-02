@@ -8,7 +8,10 @@
   </head>
   <body>
     <header>
-      <h1>BoxGen</h1>
+      <div class="title">
+        <h1>BoxGen</h1>
+        <button id="version" class="version" title="Release notes"></button>
+      </div>
       <div class="actions">
         <button id="open">Open XML…</button>
         <button id="save">Save XML</button>
@@ -27,6 +30,10 @@
         <div id="summary"></div>
       </section>
     </main>
+    <dialog id="notes">
+      <form method="dialog" class="notes-close"><button aria-label="Close">×</button></form>
+      <div id="notes-body"></div>
+    </dialog>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
