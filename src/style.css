@@ -1,0 +1,219 @@
+:root {
+  --bg: #f6f5f2;
+  --panel: #ffffff;
+  --text: #1f1f1f;
+  --muted: #6b6b6b;
+  --border: #dcdad5;
+  --accent: #b5562b;
+  --error-bg: #fdecea;
+  --error-text: #8a1c12;
+  --wood: #d9b98c;
+  --wood-dark: #b8935f;
+  --opening: #3a3530;
+  --drawer: #ecd7b4;
+  --dim: #555555;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1b1b1d;
+    --panel: #242427;
+    --text: #e8e6e3;
+    --muted: #9a9894;
+    --border: #3a3a3e;
+    --accent: #e0814f;
+    --error-bg: #3b1d1a;
+    --error-text: #ffb4a8;
+    --wood: #8f7350;
+    --wood-dark: #6f5636;
+    --opening: #0f0e0d;
+    --drawer: #b89a6d;
+    --dim: #b0aeab;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+button {
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: var(--accent);
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(320px, 2fr) 3fr;
+  min-height: 0;
+}
+
+.editor-pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid var(--border);
+  background: var(--panel);
+}
+
+#editor {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#editor .cm-editor {
+  height: 100%;
+  font-size: 13px;
+}
+
+#errors:empty {
+  display: none;
+}
+
+#errors {
+  max-height: 30%;
+  overflow: auto;
+  padding: 0.6rem 1rem;
+  background: var(--error-bg);
+  color: var(--error-text);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--border);
+}
+
+#errors ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.preview-pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 1rem;
+}
+
+#preview {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#preview svg {
+  width: 100%;
+  height: 100%;
+}
+
+#preview.stale {
+  opacity: 0.4;
+}
+
+#summary {
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
+  padding-top: 0.5rem;
+}
+
+.front-view .wall {
+  fill: var(--wood);
+  stroke: var(--wood-dark);
+  stroke-width: 0.5;
+}
+
+.front-view .opening {
+  fill: var(--opening);
+}
+
+.front-view .drawer {
+  fill: var(--drawer);
+  stroke: var(--wood-dark);
+  stroke-width: 0.4;
+}
+
+.front-view .label {
+  fill: #2b2216;
+  font-family: system-ui, sans-serif;
+}
+
+.front-view .dim line {
+  stroke: var(--dim);
+  stroke-width: 0.4;
+}
+
+.front-view .dim text,
+.front-view .caption {
+  fill: var(--dim);
+  font-family: system-ui, sans-serif;
+}
+
+@media (max-width: 800px) {
+  main {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+  .editor-pane {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+}

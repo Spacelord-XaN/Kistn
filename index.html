@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BoxGen</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>BoxGen</h1>
+      <div class="actions">
+        <button id="open">Open XML…</button>
+        <button id="save">Save XML</button>
+        <button id="example">Load example</button>
+        <button id="export" class="primary">Export SVG</button>
+        <input id="file" type="file" accept=".xml,text/xml" hidden />
+      </div>
+    </header>
+    <main>
+      <section class="editor-pane">
+        <div id="editor"></div>
+        <div id="errors" role="status"></div>
+      </section>
+      <section class="preview-pane">
+        <div id="preview"></div>
+        <div id="summary"></div>
+      </section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
