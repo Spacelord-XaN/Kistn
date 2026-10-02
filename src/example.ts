@@ -4,7 +4,7 @@ export const EXAMPLE_XML = `<Cabinet Width="400" Height="300" Depth="250">
 
   <Grid RowDefinitions="1*, 2*, 1*" ColumnDefinitions="1*, 1*, 1*">
     <!-- Wide drawer across the first two columns, split into compartments -->
-    <Drawer Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" NotchWidth="30" NotchDepth="15">
+    <Drawer Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
       <Compartments RowDefinitions="1*, 1*" ColumnDefinitions="2*, 1*" />
     </Drawer>
 

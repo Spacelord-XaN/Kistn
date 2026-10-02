@@ -1,5 +1,5 @@
 import { CabinetLayout } from '../layout/grid';
-import { DrawerBox, notchFeature } from '../parts/drawer';
+import { DrawerBox } from '../parts/drawer';
 
 const f1 = (n: number) => (Math.round(n * 10) / 10).toString();
 
@@ -30,12 +30,7 @@ function vDim(y0: number, y1: number, x: number, label: string, fs: number): str
 function drawerFront(box: DrawerBox, clearance: number): string {
   const x0 = box.opening.x0 + clearance;
   const y0 = box.opening.y0 + clearance;
-  const def = box.opening.def;
-  const pts: [number, number][] = [[0, 0]];
-  if (def.notchWidth > 0 && def.notchDepth > 0) pts.push(...notchFeature(box.width, def.notchWidth, def.notchDepth));
-  pts.push([box.width, 0], [box.width, box.height], [0, box.height]);
-  const d = pts.map(([x, y], i) => `${i ? 'L' : 'M'}${f1(x0 + x)} ${f1(y0 + y)}`).join(' ') + ' Z';
-  return `<path class="drawer" d="${d}"/>`;
+  return `<rect class="drawer" x="${f1(x0)}" y="${f1(y0)}" width="${f1(box.width)}" height="${f1(box.height)}"/>`;
 }
 
 export function frontViewSvg(layout: CabinetLayout, boxes: DrawerBox[]): string {
@@ -58,8 +53,7 @@ export function frontViewSvg(layout: CabinetLayout, boxes: DrawerBox[]): string 
       const dfs = Math.min(fs * 0.8, (b.width / 10) * 0.9);
       const lines = [`${f1(b.width)} × ${f1(b.height)} × ${f1(b.depth)}`];
       if (comp) lines.push(`${comp.cols.length} × ${comp.rows.length} compartments`);
-      const notchDepth = b.opening.def.notchWidth > 0 ? b.opening.def.notchDepth : 0;
-      const ty = Math.max(cy, b.opening.y0 + c + notchDepth + dfs * 1.2);
+      const ty = Math.max(cy, b.opening.y0 + c + dfs * 1.2);
       const text = lines
         .map(
           (l, i) =>

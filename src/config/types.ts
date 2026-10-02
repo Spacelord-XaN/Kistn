@@ -23,9 +23,6 @@ export interface DrawerDef {
   col: number;
   rowSpan: number;
   colSpan: number;
-  /** Width of the U-notch handle in the drawer front; 0 disables it. */
-  notchWidth: number;
-  notchDepth: number;
   compartments?: CompartmentDef;
   /** True when generated for a cell not covered by any <Drawer>. */
   implicit: boolean;
@@ -54,9 +51,6 @@ export const DEFAULT_MATERIAL: Material = {
   clearance: 0.5,
   fingerWidth: 10,
 };
-
-export const DEFAULT_NOTCH_WIDTH = 30;
-export const DEFAULT_NOTCH_DEPTH = 15;
 
 export const DEFAULT_EXPORT: ExportSettings = {
   sheetWidth: 600,

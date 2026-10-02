@@ -3,8 +3,6 @@ import {
   CompartmentDef,
   DEFAULT_EXPORT,
   DEFAULT_MATERIAL,
-  DEFAULT_NOTCH_DEPTH,
-  DEFAULT_NOTCH_WIDTH,
   DrawerDef,
 } from './types';
 import { parseStars } from '../layout/stars';
@@ -192,18 +190,12 @@ export function parseConfig(xml: string, parser: DOMParser = new DOMParser()): P
         return;
       }
       const label = describeDrawer(el, drawers.length);
-      checkAttributes(
-        el,
-        ['Grid.Row', 'Grid.Column', 'Grid.RowSpan', 'Grid.ColumnSpan', 'NotchWidth', 'NotchDepth'],
-        errors,
-      );
+      checkAttributes(el, ['Grid.Row', 'Grid.Column', 'Grid.RowSpan', 'Grid.ColumnSpan'], errors);
       const drawer: DrawerDef = {
         row: numberAttr(el, 'Grid.Row', errors, { def: 0, min: 0, integer: true, label }),
         col: numberAttr(el, 'Grid.Column', errors, { def: 0, min: 0, integer: true, label }),
         rowSpan: numberAttr(el, 'Grid.RowSpan', errors, { def: 1, min: 1, integer: true, label }),
         colSpan: numberAttr(el, 'Grid.ColumnSpan', errors, { def: 1, min: 1, integer: true, label }),
-        notchWidth: numberAttr(el, 'NotchWidth', errors, { def: DEFAULT_NOTCH_WIDTH, min: 0, label }),
-        notchDepth: numberAttr(el, 'NotchDepth', errors, { def: DEFAULT_NOTCH_DEPTH, min: 0, label }),
         implicit: false,
       };
       for (const c of childElements(el)) {
@@ -249,15 +241,7 @@ export function parseConfig(xml: string, parser: DOMParser = new DOMParser()): P
   for (let r = 0; r < rows.length; r++) {
     for (let c = 0; c < cols.length; c++) {
       if (owner[r][c] < 0) {
-        drawers.push({
-          row: r,
-          col: c,
-          rowSpan: 1,
-          colSpan: 1,
-          notchWidth: DEFAULT_NOTCH_WIDTH,
-          notchDepth: DEFAULT_NOTCH_DEPTH,
-          implicit: true,
-        });
+        drawers.push({ row: r, col: c, rowSpan: 1, colSpan: 1, implicit: true });
       }
     }
   }

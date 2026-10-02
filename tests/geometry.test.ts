@@ -7,7 +7,6 @@ import { fingerCount, fingerSegments, tabIntervals } from '../src/geometry/finge
 import { rect, signedArea } from '../src/geometry/path';
 import { generateFromConfig } from '../src/generate';
 import { compartmentGeometry } from '../src/parts/compartments';
-import { notchFeature } from '../src/parts/drawer';
 import { domParser, partArea, sumArea } from './helpers';
 
 const exampleConfig = (kerf = 0) => {
@@ -58,15 +57,13 @@ describe('volume conservation', () => {
     expect(sumArea(parts) * t).toBeCloseTo(shell + dividers * t, 3);
   });
 
-  it('every drawer box, including notch and compartments', () => {
+  it('every drawer box, including compartments', () => {
     const result = generateFromConfig(exampleConfig());
     const dt = result.config!.material.drawerThickness;
     for (const box of result.boxes!) {
       const { width: w, height: h, depth: d } = box;
       const parts = result.parts!.filter((p) => p.name.startsWith(box.name + ' '));
-      const def = box.opening.def;
-      const notch = notchFeature(w, def.notchWidth, def.notchDepth).map(([x, y]) => ({ x, y }));
-      let expected = (w * h * d - (w - 2 * dt) * (h - dt) * (d - 2 * dt)) / dt - Math.abs(signedArea(notch));
+      let expected = (w * h * d - (w - 2 * dt) * (h - dt) * (d - 2 * dt)) / dt;
       const g = compartmentGeometry(result.config!, box);
       if (g) {
         const nc = g.cols.length - 1;
