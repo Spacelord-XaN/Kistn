@@ -12,6 +12,19 @@ To release:
 
 ## [Unreleased]
 
+### Added
+
+- Front view with drawer, shelf and divider codes plus a legend in the label layer of the exported SVG.
+
+### Changed
+
+- Labels in the exported SVG use short codes (e.g. `C-B`, `S1`, `V2`, `D0.1-F`, `D0.1-CD1`) so they fit the parts.
+- Exported parts are laid out in one row per assembly instead of being wrapped to a sheet width.
+
+### Removed
+
+- `SheetWidth` on `<Export>`; arranging parts on the material is left to the laser software.
+
 ## [0.1.0] - 2026-10-02
 
 ### Added

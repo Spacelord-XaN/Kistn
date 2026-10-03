@@ -17,6 +17,8 @@ export interface GenerateResult {
   parts?: Part[];
   /** Parts with kerf compensation applied, ready to cut. */
   cutParts?: Part[];
+  /** cutParts grouped by assembly: cabinet, shelves/dividers, then one group per drawer. */
+  cutGroups?: Part[][];
 }
 
 export function generateFromConfig(config: CabinetConfig): GenerateResult {
@@ -28,13 +30,10 @@ export function generateFromConfig(config: CabinetConfig): GenerateResult {
   const drawerErrors = boxes.flatMap((b) => [...validateDrawer(config, b), ...validateCompartments(config, b)]);
   if (drawerErrors.length) return { errors: drawerErrors, config, layout, boxes };
 
-  const parts = [
-    ...cabinetParts(layout),
-    ...dividerParts(layout),
-    ...boxes.flatMap((b) => drawerParts(config, b)),
-  ];
-  const cutParts = parts.map((p) => applyKerf(p, config.material.kerf));
-  return { errors: [], config, layout, boxes, parts, cutParts };
+  const groups = [cabinetParts(layout), dividerParts(layout), ...boxes.map((b) => drawerParts(config, b))];
+  const parts = groups.flat();
+  const cutGroups = groups.map((g) => g.map((p) => applyKerf(p, config.material.kerf)));
+  return { errors: [], config, layout, boxes, parts, cutParts: cutGroups.flat(), cutGroups };
 }
 
 export function generate(xml: string, parser?: DOMParser): GenerateResult {

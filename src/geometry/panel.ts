@@ -35,7 +35,10 @@ export interface PanelSpec {
 }
 
 export interface Part {
+  /** Full descriptive name, used in messages and the SVG <title>. */
   name: string;
+  /** Short code engraved on the part, e.g. "D0.1-F". */
+  label: string;
   outline: Polygon;
   holes: Polygon[];
 }
@@ -47,7 +50,7 @@ export function rectFeature(a: number, b: number, depth: number): Feature {
   ];
 }
 
-export function buildPanel(name: string, spec: PanelSpec): Part {
+export function buildPanel(name: string, label: string, spec: PanelSpec): Part {
   const { width: w, height: h, edges } = spec;
   const owned = spec.ownedCorners ?? [false, false, false, false];
   const len = [w, h, w, h];
@@ -121,5 +124,5 @@ export function buildPanel(name: string, spec: PanelSpec): Part {
     }
   }
 
-  return { name, outline: cleanPolygon(outline), holes: spec.holes ?? [] };
+  return { name, label, outline: cleanPolygon(outline), holes: spec.holes ?? [] };
 }

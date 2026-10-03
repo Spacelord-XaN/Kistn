@@ -170,8 +170,7 @@ export function parseConfig(xml: string, parser: DOMParser = new DOMParser()): P
   const exportSettings = { ...DEFAULT_EXPORT };
   const exportEl = childElements(root, 'Export')[0];
   if (exportEl) {
-    checkAttributes(exportEl, ['SheetWidth', 'Spacing'], errors);
-    exportSettings.sheetWidth = numberAttr(exportEl, 'SheetWidth', errors, { def: exportSettings.sheetWidth, min: 10 });
+    checkAttributes(exportEl, ['Spacing'], errors);
     exportSettings.spacing = numberAttr(exportEl, 'Spacing', errors, { def: exportSettings.spacing, min: 0 });
   }
 

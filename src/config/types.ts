@@ -29,7 +29,7 @@ export interface DrawerDef {
 }
 
 export interface ExportSettings {
-  sheetWidth: number;
+  /** Gap between parts in the exported SVG (mm). */
   spacing: number;
 }
 
@@ -53,6 +53,5 @@ export const DEFAULT_MATERIAL: Material = {
 };
 
 export const DEFAULT_EXPORT: ExportSettings = {
-  sheetWidth: 600,
   spacing: 5,
 };

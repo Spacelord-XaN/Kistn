@@ -70,7 +70,7 @@ export function compartmentParts(
     const top: Feature[] = g.rows.slice(0, -1).map((r) => rectFeature(r.end - dt, r.end, halfLap));
     const bottom: Feature[] = rowTabs.map(([a, b]) => rectFeature(a - dt, b - dt, -dt));
     parts.push(
-      buildPanel(`${box.name} Compartment Divider ${i + 1} (front-back)`, {
+      buildPanel(`${box.name} Compartment Divider ${i + 1} (front-back)`, `${box.code}-CD${i + 1}`, {
         width: box.depth - 2 * dt,
         height: g.height,
         edges: [{ kind: 'plain', features: top }, { kind: 'plain' }, { kind: 'plain', features: bottom }, { kind: 'plain' }],
@@ -87,7 +87,7 @@ export function compartmentParts(
       ...colTabs.map(([a, b]) => rectFeature(a - dt, b - dt, -dt)),
     ];
     parts.push(
-      buildPanel(`${box.name} Compartment Divider ${g.cols.length + i} (left-right)`, {
+      buildPanel(`${box.name} Compartment Divider ${g.cols.length + i} (left-right)`, `${box.code}-CD${g.cols.length + i}`, {
         width: box.width - 2 * dt,
         height: g.height,
         edges: [{ kind: 'plain' }, { kind: 'plain' }, { kind: 'plain', features: bottom }, { kind: 'plain' }],

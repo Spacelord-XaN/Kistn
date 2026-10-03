@@ -29,7 +29,7 @@ export function dividerParts(layout: CabinetLayout): Part[] {
       return tabIntervals(0, dd, fw, parity).map(([a, b]) => rect(v.x - s.x0, a, v.x - s.x0 + t, b));
     });
     parts.push(
-      buildPanel(`Shelf ${i + 1} (below row ${s.boundary}, columns ${s.colStart}–${s.colEnd})`, {
+      buildPanel(`Shelf ${i + 1} (below row ${s.boundary}, columns ${s.colStart}–${s.colEnd})`, `S${i + 1}`, {
         width: length,
         height: dd,
         edges: [
@@ -51,7 +51,7 @@ export function dividerParts(layout: CabinetLayout): Part[] {
       .filter((s) => s.leftVertical === i || s.rightVertical === i)
       .flatMap((s) => tabIntervals(0, dd, fw, 'all').map(([a, b]) => rect(a, s.y - v.y0, b, s.y - v.y0 + t)));
     parts.push(
-      buildPanel(`Divider ${i + 1} (right of column ${v.gap}, rows ${v.rowStart}–${v.rowEnd})`, {
+      buildPanel(`Divider ${i + 1} (right of column ${v.gap}, rows ${v.rowStart}–${v.rowEnd})`, `V${i + 1}`, {
         width: dd,
         height: length,
         edges: [

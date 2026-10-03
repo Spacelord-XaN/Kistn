@@ -33,8 +33,8 @@ export function cabinetParts(layout: CabinetLayout): Part[] {
     ...verticals.flatMap((v) => tabIntervals(v.y0, v.y1, fw, 'all').map(([a, b]) => rect(v.x, a, v.x + t, b))),
   ];
 
-  const side = (name: string, holes: Polygon[]) =>
-    buildPanel(name, {
+  const side = (name: string, label: string, holes: Polygon[]) =>
+    buildPanel(name, label, {
       width: D,
       height: H,
       // top, back, bottom, front(open)
@@ -43,8 +43,8 @@ export function cabinetParts(layout: CabinetLayout): Part[] {
       holes,
     });
 
-  const cap = (name: string, holes: Polygon[]) =>
-    buildPanel(name, {
+  const cap = (name: string, label: string, holes: Polygon[]) =>
+    buildPanel(name, label, {
       width: W,
       height: D,
       // front(open), right side, back, left side
@@ -53,15 +53,15 @@ export function cabinetParts(layout: CabinetLayout): Part[] {
     });
 
   return [
-    buildPanel('Cabinet Back', {
+    buildPanel('Cabinet Back', 'C-B', {
       width: W,
       height: H,
       edges: [finger(false), finger(false), finger(false), finger(false)],
       holes: backSlots,
     }),
-    side('Cabinet Left', sideSlots('leftEnd')),
-    side('Cabinet Right', sideSlots('rightEnd')),
-    cap('Cabinet Top', capSlots('topEnd')),
-    cap('Cabinet Bottom', capSlots('bottomEnd')),
+    side('Cabinet Left', 'C-L', sideSlots('leftEnd')),
+    side('Cabinet Right', 'C-R', sideSlots('rightEnd')),
+    cap('Cabinet Top', 'C-T', capSlots('topEnd')),
+    cap('Cabinet Bottom', 'C-U', capSlots('bottomEnd')),
   ];
 }

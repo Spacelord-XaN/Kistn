@@ -7,6 +7,7 @@ export function applyKerf(part: Part, kerf: number): Part {
   const d = kerf / 2;
   return {
     name: part.name,
+    label: part.label,
     outline: offsetPolygon(part.outline, d),
     holes: part.holes.map((h) => offsetPolygon(h, -d)),
   };

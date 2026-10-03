@@ -95,7 +95,7 @@ describe('drawers', () => {
 
 describe('kerf', () => {
   it('grows outlines and shrinks holes by kerf/2', () => {
-    const part = { name: 'p', outline: rect(0, 0, 10, 10), holes: [rect(2, 2, 4, 4)] };
+    const part = { name: 'p', label: 'p', outline: rect(0, 0, 10, 10), holes: [rect(2, 2, 4, 4)] };
     const k = applyKerf(part, 0.2);
     expect(Math.abs(signedArea(k.outline))).toBeCloseTo(10.2 * 10.2);
     expect(Math.abs(signedArea(k.holes[0]))).toBeCloseTo(1.8 * 1.8);
@@ -111,22 +111,29 @@ describe('kerf', () => {
 });
 
 describe('svg export', () => {
-  it('places every part on the sheet in millimetres', () => {
+  it('lays out every part in millimetres, one row per assembly', () => {
     const result = generateFromConfig(exampleConfig());
-    const sheet = layoutParts(result.cutParts!, result.config!.export);
+    const sheet = layoutParts(result.cutGroups!, result.config!.export.spacing);
     expect(sheet.placed).toHaveLength(result.cutParts!.length);
-    const svg = sheetToSvg(sheet);
+    const svg = sheetToSvg(sheet, result.layout!, result.boxes!);
     expect(svg).toMatch(/width="[\d.]+mm"/);
     expect(svg.match(/<path /g)).toHaveLength(result.cutParts!.length);
     expect(svg).toContain('inkscape:label="Labels"');
-    expect(svg.match(/<text /g)).toHaveLength(result.cutParts!.length);
-    expect(svg).toContain('>Cabinet Back</text>');
+    for (const label of ['C-B', 'D0.0-F', 'D0.0-CD1', 'S1', 'V1', 'D0.0', 'C  Cabinet']) {
+      expect(svg).toContain(`>${label}</text>`);
+    }
     for (const { part, dx, dy } of sheet.placed) {
       for (const p of part.outline) {
         expect(p.x + dx).toBeGreaterThanOrEqual(0);
         expect(p.y + dy).toBeGreaterThanOrEqual(0);
         expect(p.x + dx).toBeLessThanOrEqual(sheet.width);
+        expect(p.y + dy).toBeLessThanOrEqual(sheet.height);
       }
     }
+  });
+
+  it('gives every part a unique short label', () => {
+    const labels = generateFromConfig(exampleConfig()).parts!.map((p) => p.label);
+    expect(new Set(labels).size).toBe(labels.length);
   });
 });

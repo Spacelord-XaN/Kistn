@@ -53,11 +53,8 @@ function update(text: string) {
   // Keep the last good preview visible but faded while the config is broken.
   previewEl.classList.toggle('stale', !ok);
 
-  if (ok && current.parts && current.config) {
-    const sheet = layoutParts(current.cutParts!, current.config.export);
-    summaryEl.textContent =
-      `${current.boxes!.length} drawers · ${current.parts.length} parts · ` +
-      `sheet ${Math.round(sheet.width)} × ${Math.round(sheet.height)} mm`;
+  if (ok && current.parts) {
+    summaryEl.textContent = `${current.boxes!.length} drawers · ${current.parts.length} parts`;
   } else {
     summaryEl.textContent = '';
   }
@@ -108,9 +105,10 @@ $('example').addEventListener('click', () => {
 });
 
 exportBtn.addEventListener('click', () => {
-  if (!current.cutParts || !current.config) return;
-  const sheet = layoutParts(current.cutParts, current.config.export);
-  download('boxgen.svg', sheetToSvg(sheet), 'image/svg+xml');
+  const { cutGroups, config, layout, boxes } = current;
+  if (!cutGroups || !config || !layout || !boxes) return;
+  const sheet = layoutParts(cutGroups, config.export.spacing);
+  download('boxgen.svg', sheetToSvg(sheet, layout, boxes), 'image/svg+xml');
 });
 
 const versionBtn = $<HTMLButtonElement>('version');
