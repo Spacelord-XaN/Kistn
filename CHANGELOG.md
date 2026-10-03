@@ -14,6 +14,7 @@ To release:
 
 ### Added
 
+- Optional handle hole in drawer fronts: `<Handle Shape="Circle|Rectangle|None" Width Height Offset />` under `<Cabinet>` sets it for all drawers, a `<Handle>` inside a `<Drawer>` overrides it.
 - Front view with drawer, shelf and divider codes plus a legend in the label layer of the exported SVG.
 
 ### Changed

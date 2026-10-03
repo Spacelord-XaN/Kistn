@@ -30,7 +30,18 @@ function vDim(y0: number, y1: number, x: number, label: string, fs: number): str
 function drawerFront(box: DrawerBox, clearance: number): string {
   const x0 = box.opening.x0 + clearance;
   const y0 = box.opening.y0 + clearance;
-  return `<rect class="drawer" x="${f1(x0)}" y="${f1(y0)}" width="${f1(box.width)}" height="${f1(box.height)}"/>`;
+  const front = `<rect class="drawer" x="${f1(x0)}" y="${f1(y0)}" width="${f1(box.width)}" height="${f1(box.height)}"/>`;
+  const handle = box.opening.def.handle;
+  if (!handle) return front;
+  const cx = x0 + box.width / 2;
+  const cy = y0 + (handle.offset ?? box.height / 2);
+  const rx = handle.width / 2;
+  const ry = handle.height / 2;
+  const hole =
+    handle.shape === 'rectangle'
+      ? `<rect class="handle" x="${f1(cx - rx)}" y="${f1(cy - ry)}" width="${f1(handle.width)}" height="${f1(handle.height)}"/>`
+      : `<ellipse class="handle" cx="${f1(cx)}" cy="${f1(cy)}" rx="${f1(rx)}" ry="${f1(ry)}"/>`;
+  return front + hole;
 }
 
 export function frontViewSvg(layout: CabinetLayout, boxes: DrawerBox[]): string {
@@ -53,7 +64,9 @@ export function frontViewSvg(layout: CabinetLayout, boxes: DrawerBox[]): string 
       const dfs = Math.min(fs * 0.8, (b.width / 10) * 0.9);
       const lines = [`${f1(b.width)} × ${f1(b.height)} × ${f1(b.depth)}`];
       if (comp) lines.push(`${comp.cols.length} × ${comp.rows.length} compartments`);
-      const ty = Math.max(cy, b.opening.y0 + c + dfs * 1.2);
+      const handle = b.opening.def.handle;
+      const handleBottom = handle ? (handle.offset ?? b.height / 2) + handle.height / 2 : 0;
+      const ty = Math.max(cy, b.opening.y0 + c + handleBottom + dfs * 1.2);
       const text = lines
         .map(
           (l, i) =>

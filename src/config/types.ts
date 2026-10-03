@@ -18,12 +18,25 @@ export interface CompartmentDef {
   cols: number[];
 }
 
+export type HandleShape = 'circle' | 'rectangle';
+
+/** Handle hole cut into a drawer front. */
+export interface HandleDef {
+  shape: HandleShape;
+  width: number;
+  height: number;
+  /** Distance from the front's top edge to the hole centre; undefined = vertically centred. */
+  offset?: number;
+}
+
 export interface DrawerDef {
   row: number;
   col: number;
   rowSpan: number;
   colSpan: number;
   compartments?: CompartmentDef;
+  /** Handle hole in the front; undefined = none. */
+  handle?: HandleDef;
   /** True when generated for a cell not covered by any <Drawer>. */
   implicit: boolean;
 }
@@ -51,6 +64,8 @@ export const DEFAULT_MATERIAL: Material = {
   clearance: 0.5,
   fingerWidth: 10,
 };
+
+export const DEFAULT_HANDLE_WIDTH = 30;
 
 export const DEFAULT_EXPORT: ExportSettings = {
   spacing: 5,

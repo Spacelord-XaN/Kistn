@@ -75,7 +75,7 @@ function fitText(text: string, b: Bounds): string {
 }
 
 function labelText({ part, dx, dy }: PlacedPart): string {
-  const b = bounds([part.outline]);
+  const b = part.labelBox ?? bounds([part.outline]);
   return fitText(part.label, { minX: b.minX + dx, maxX: b.maxX + dx, minY: b.minY + dy, maxY: b.maxY + dy });
 }
 

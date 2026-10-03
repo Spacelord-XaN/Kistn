@@ -7,6 +7,7 @@ import { fingerCount, fingerSegments, tabIntervals } from '../src/geometry/finge
 import { rect, signedArea } from '../src/geometry/path';
 import { generateFromConfig } from '../src/generate';
 import { compartmentGeometry } from '../src/parts/compartments';
+import { handleHole } from '../src/parts/drawer';
 import { domParser, partArea, sumArea } from './helpers';
 
 const exampleConfig = (kerf = 0) => {
@@ -57,13 +58,14 @@ describe('volume conservation', () => {
     expect(sumArea(parts) * t).toBeCloseTo(shell + dividers * t, 3);
   });
 
-  it('every drawer box, including compartments', () => {
+  it('every drawer box, including handle hole and compartments', () => {
     const result = generateFromConfig(exampleConfig());
     const dt = result.config!.material.drawerThickness;
     for (const box of result.boxes!) {
       const { width: w, height: h, depth: d } = box;
       const parts = result.parts!.filter((p) => p.name.startsWith(box.name + ' '));
-      let expected = (w * h * d - (w - 2 * dt) * (h - dt) * (d - 2 * dt)) / dt;
+      const hole = handleHole(box);
+      let expected = (w * h * d - (w - 2 * dt) * (h - dt) * (d - 2 * dt)) / dt - (hole ? Math.abs(signedArea(hole)) : 0);
       const g = compartmentGeometry(result.config!, box);
       if (g) {
         const nc = g.cols.length - 1;
@@ -93,6 +95,40 @@ describe('drawers', () => {
   });
 });
 
+describe('handle hole', () => {
+  it('is cut into drawer fronts only, centred horizontally at the offset', () => {
+    const result = generateFromConfig(exampleConfig());
+    for (const box of result.boxes!) {
+      const front = result.parts!.find((p) => p.name === `${box.name} Front`)!;
+      const back = result.parts!.find((p) => p.name === `${box.name} Back`)!;
+      expect(front.holes).toHaveLength(1);
+      expect(back.holes).toHaveLength(0);
+      const xs = front.holes[0].map((p) => p.x);
+      const ys = front.holes[0].map((p) => p.y);
+      const { width, height, offset } = box.opening.def.handle!;
+      expect((Math.min(...xs) + Math.max(...xs)) / 2).toBeCloseTo(box.width / 2);
+      expect(Math.max(...xs) - Math.min(...xs)).toBeCloseTo(width);
+      expect(Math.max(...ys) - Math.min(...ys)).toBeCloseTo(height);
+      expect((Math.min(...ys) + Math.max(...ys)) / 2).toBeCloseTo(offset!);
+    }
+  });
+
+  it('puts the front label outside the hole', () => {
+    const result = generateFromConfig(exampleConfig());
+    for (const p of result.parts!.filter((p) => p.label.endsWith('-F'))) {
+      const holeBottom = Math.max(...p.holes[0].map((q) => q.y));
+      expect(p.labelBox!.minY).toBeGreaterThanOrEqual(holeBottom);
+    }
+  });
+
+  it('reports a handle that does not fit the front', () => {
+    const config = exampleConfig();
+    config.drawers[0].handle = { shape: 'rectangle', width: 1000, height: 20 };
+    const result = generateFromConfig(config);
+    expect(result.errors.join('\n')).toMatch(/handle \(1000 × 20 mm\) does not fit the front/);
+  });
+});
+
 describe('kerf', () => {
   it('grows outlines and shrinks holes by kerf/2', () => {
     const part = { name: 'p', label: 'p', outline: rect(0, 0, 10, 10), holes: [rect(2, 2, 4, 4)] };
@@ -107,6 +143,10 @@ describe('kerf', () => {
     const nominal = result.parts!.find((p) => p.name === 'Cabinet Back')!;
     const cut = result.cutParts!.find((p) => p.name === 'Cabinet Back')!;
     expect(partArea(cut)).toBeGreaterThan(partArea(nominal));
+    const front = (parts: typeof result.parts) => parts!.find((p) => p.label === 'D0.0-F')!;
+    expect(Math.abs(signedArea(front(result.cutParts).holes[0]))).toBeLessThan(
+      Math.abs(signedArea(front(result.parts).holes[0])),
+    );
   });
 });
 

@@ -19,6 +19,45 @@ describe('parseConfig', () => {
     expect(wide.compartments).toEqual({ rows: [1, 1], cols: [2, 1] });
   });
 
+  it('applies the cabinet handle to all drawers and merges per-drawer overrides', () => {
+    const { config, errors } = parse(`
+      <Cabinet Width="300" Height="200" Depth="150">
+        <Handle Shape="circle" Width="40" Height="20" Offset="15" />
+        <Grid Rows="*,*,*" Columns="*">
+          <Drawer Row="0"><Handle Shape="Rectangle" Width="60" /></Drawer>
+          <Drawer Row="1"><Handle Shape="None" /></Drawer>
+        </Grid>
+      </Cabinet>`);
+    expect(errors).toEqual([]);
+    const [d0, d1, d2] = config!.drawers;
+    expect(d0.handle).toEqual({ shape: 'rectangle', width: 60, height: 20, offset: 15 });
+    expect(d1.handle).toBeUndefined();
+    expect(d2.implicit).toBe(true);
+    expect(d2.handle).toEqual({ shape: 'circle', width: 40, height: 20, offset: 15 });
+  });
+
+  it('has no handle by default; a lone per-drawer handle is a centred circle', () => {
+    const { config, errors } = parse(`
+      <Cabinet Width="300" Height="200" Depth="150">
+        <Grid Rows="*,*" Columns="*"><Drawer Row="0"><Handle Width="25" /></Drawer></Grid>
+      </Cabinet>`);
+    expect(errors).toEqual([]);
+    expect(config!.drawers[0].handle).toEqual({ shape: 'circle', width: 25, height: 25, offset: undefined });
+    expect(config!.drawers[1].handle).toBeUndefined();
+  });
+
+  it('reports bad handle shapes and attributes', () => {
+    const { errors } = parse(`
+      <Cabinet Width="300" Height="200" Depth="150">
+        <Handle Shape="Oval" />
+        <Grid><Drawer><Handle Size="3" Width="0" /></Drawer></Grid>
+      </Cabinet>`);
+    expect(errors).toHaveLength(3);
+    expect(errors.join('\n')).toMatch(/"Shape" must be one of Circle, Rectangle, None, got "Oval"/);
+    expect(errors.join('\n')).toMatch(/unknown attribute "Size"/);
+    expect(errors.join('\n')).toMatch(/"Width" must be at least 1/);
+  });
+
   it('supports XAML property-element definitions', () => {
     const { config, errors } = parse(`
       <Cabinet Width="300" Height="200" Depth="150">

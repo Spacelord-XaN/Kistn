@@ -191,6 +191,12 @@ main {
   stroke-width: 0.4;
 }
 
+.front-view .handle {
+  fill: var(--opening);
+  stroke: var(--wood-dark);
+  stroke-width: 0.4;
+}
+
 .front-view .label {
   fill: #2b2216;
   font-family: system-ui, sans-serif;

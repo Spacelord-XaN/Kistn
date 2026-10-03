@@ -10,5 +10,6 @@ export function applyKerf(part: Part, kerf: number): Part {
     label: part.label,
     outline: offsetPolygon(part.outline, d),
     holes: part.holes.map((h) => offsetPolygon(h, -d)),
+    labelBox: part.labelBox,
   };
 }

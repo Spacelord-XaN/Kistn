@@ -1,5 +1,5 @@
 import { fingerSegments } from './fingers';
-import { cleanPolygon, Polygon } from './path';
+import { Bounds, cleanPolygon, Polygon } from './path';
 
 /**
  * A feature on a plain edge, as [axisCoordinate, depth] points in ascending
@@ -41,6 +41,8 @@ export interface Part {
   label: string;
   outline: Polygon;
   holes: Polygon[];
+  /** Area to centre the engraved label in, in part coordinates; defaults to the outline's bounds. */
+  labelBox?: Bounds;
 }
 
 export function rectFeature(a: number, b: number, depth: number): Feature {
