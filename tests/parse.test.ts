@@ -23,8 +23,8 @@ describe('parseConfig', () => {
     const { config, errors } = parse(`
       <Cabinet Width="300" Height="200" Depth="150">
         <Grid>
-          <Grid.RowDefinitions><RowDefinition Height="2*"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-          <Grid.ColumnDefinitions><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
+          <Grid.Rows><Row Height="2*"/><Row Height="*"/></Grid.Rows>
+          <Grid.Columns><Column Width="1*"/></Grid.Columns>
         </Grid>
       </Cabinet>`);
     expect(errors).toEqual([]);
@@ -36,9 +36,9 @@ describe('parseConfig', () => {
   it('reports overlapping spans', () => {
     const { errors } = parse(`
       <Cabinet Width="300" Height="200" Depth="150">
-        <Grid RowDefinitions="*,*" ColumnDefinitions="*,*">
-          <Drawer Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" />
-          <Drawer Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" />
+        <Grid Rows="*,*" Columns="*,*">
+          <Drawer Row="0" Column="0" ColumnSpan="2" />
+          <Drawer Row="0" Column="1" RowSpan="2" />
         </Grid>
       </Cabinet>`);
     expect(errors.join()).toMatch(/overlaps <Drawer> #1 at Row 0, Column 1/);
@@ -46,14 +46,14 @@ describe('parseConfig', () => {
 
   it('reports spans outside the grid, unknown attributes and bad stars', () => {
     expect(
-      parse(`<Cabinet Width="300" Height="200" Depth="150"><Grid RowDefinitions="*"><Drawer Grid.RowSpan="2"/></Grid></Cabinet>`)
+      parse(`<Cabinet Width="300" Height="200" Depth="150"><Grid Rows="*"><Drawer RowSpan="2"/></Grid></Cabinet>`)
         .errors.join(),
     ).toMatch(/exceed the grid/);
     expect(parse(`<Cabinet Width="300" Height="200" Depth="150" Colour="red"/>`).errors.join()).toMatch(
       /unknown attribute "Colour"/,
     );
     expect(
-      parse(`<Cabinet Width="300" Height="200" Depth="150"><Grid RowDefinitions="Auto,*"/></Cabinet>`).errors.join(),
+      parse(`<Cabinet Width="300" Height="200" Depth="150"><Grid Rows="Auto,*"/></Cabinet>`).errors.join(),
     ).toMatch(/not a star size/);
   });
 

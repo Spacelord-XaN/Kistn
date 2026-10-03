@@ -18,6 +18,7 @@ To release:
 
 ### Changed
 
+- Shorter grid names in the XML: `Rows`/`Columns` instead of `RowDefinitions`/`ColumnDefinitions` (also `<Grid.Rows>`/`<Grid.Columns>` with `<Row>`/`<Column>` instead of `<RowDefinition>`/`<ColumnDefinition>`), and `Row`/`Column`/`RowSpan`/`ColumnSpan` on `<Drawer>` instead of `Grid.Row`/`Grid.Column`/`Grid.RowSpan`/`Grid.ColumnSpan`. The old names are no longer accepted.
 - Labels in the exported SVG use short codes (e.g. `C-B`, `S1`, `V2`, `D0.1-F`, `D0.1-CD1`) so they fit the parts.
 - Exported parts are laid out in one row per assembly instead of being wrapped to a sheet width.
 

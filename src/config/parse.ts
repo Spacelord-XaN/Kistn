@@ -62,8 +62,8 @@ function childElements(el: Element, tag?: string): Element[] {
 
 /**
  * Reads row or column definitions either from an attribute
- * (RowDefinitions="1*,2*") or from XAML property-element syntax:
- * <Grid.RowDefinitions><RowDefinition Height="2*"/></Grid.RowDefinitions>.
+ * (Rows="1*,2*") or from XAML property-element syntax:
+ * <Grid.Rows><Row Height="2*"/></Grid.Rows>.
  */
 function readDefinitions(
   el: Element,
@@ -71,7 +71,7 @@ function readDefinitions(
   errors: Errors,
   label: string,
 ): number[] | undefined {
-  const attrName = `${kind}Definitions`;
+  const attrName = `${kind}s`;
   const sizeAttr = kind === 'Row' ? 'Height' : 'Width';
   const propTag = `${el.tagName}.${attrName}`;
   const attr = el.getAttribute(attrName);
@@ -91,7 +91,7 @@ function readDefinitions(
     const defs = childElements(prop);
     const weights: number[] = [];
     for (const d of defs) {
-      if (d.tagName !== `${kind}Definition`) {
+      if (d.tagName !== kind) {
         errors.add(`<${propTag}>: unexpected element <${d.tagName}>`);
         continue;
       }
@@ -110,9 +110,9 @@ function readDefinitions(
 
 function parseCompartments(el: Element, errors: Errors, label: string): CompartmentDef | undefined {
   const lbl = `${label} <Compartments>`;
-  checkAttributes(el, ['RowDefinitions', 'ColumnDefinitions'], errors);
+  checkAttributes(el, ['Rows', 'Columns'], errors);
   for (const c of childElements(el)) {
-    if (c.tagName !== 'Compartments.RowDefinitions' && c.tagName !== 'Compartments.ColumnDefinitions') {
+    if (c.tagName !== 'Compartments.Rows' && c.tagName !== 'Compartments.Columns') {
       errors.add(`${lbl}: unexpected element <${c.tagName}>`);
     }
   }
@@ -124,8 +124,8 @@ function parseCompartments(el: Element, errors: Errors, label: string): Compartm
 }
 
 function describeDrawer(el: Element, index: number): string {
-  const r = el.getAttribute('Grid.Row') ?? '0';
-  const c = el.getAttribute('Grid.Column') ?? '0';
+  const r = el.getAttribute('Row') ?? '0';
+  const c = el.getAttribute('Column') ?? '0';
   return `<Drawer> #${index + 1} (Row ${r}, Column ${c})`;
 }
 
@@ -179,22 +179,22 @@ export function parseConfig(xml: string, parser: DOMParser = new DOMParser()): P
   let cols: number[] | undefined = [1];
   const drawers: DrawerDef[] = [];
   if (gridEl) {
-    checkAttributes(gridEl, ['RowDefinitions', 'ColumnDefinitions'], errors);
+    checkAttributes(gridEl, ['Rows', 'Columns'], errors);
     rows = readDefinitions(gridEl, 'Row', errors, '<Grid>');
     cols = readDefinitions(gridEl, 'Column', errors, '<Grid>');
     childElements(gridEl).forEach((el) => {
-      if (el.tagName === 'Grid.RowDefinitions' || el.tagName === 'Grid.ColumnDefinitions') return;
+      if (el.tagName === 'Grid.Rows' || el.tagName === 'Grid.Columns') return;
       if (el.tagName !== 'Drawer') {
         errors.add(`<Grid>: unexpected element <${el.tagName}> (only <Drawer> allowed)`);
         return;
       }
       const label = describeDrawer(el, drawers.length);
-      checkAttributes(el, ['Grid.Row', 'Grid.Column', 'Grid.RowSpan', 'Grid.ColumnSpan'], errors);
+      checkAttributes(el, ['Row', 'Column', 'RowSpan', 'ColumnSpan'], errors);
       const drawer: DrawerDef = {
-        row: numberAttr(el, 'Grid.Row', errors, { def: 0, min: 0, integer: true, label }),
-        col: numberAttr(el, 'Grid.Column', errors, { def: 0, min: 0, integer: true, label }),
-        rowSpan: numberAttr(el, 'Grid.RowSpan', errors, { def: 1, min: 1, integer: true, label }),
-        colSpan: numberAttr(el, 'Grid.ColumnSpan', errors, { def: 1, min: 1, integer: true, label }),
+        row: numberAttr(el, 'Row', errors, { def: 0, min: 0, integer: true, label }),
+        col: numberAttr(el, 'Column', errors, { def: 0, min: 0, integer: true, label }),
+        rowSpan: numberAttr(el, 'RowSpan', errors, { def: 1, min: 1, integer: true, label }),
+        colSpan: numberAttr(el, 'ColumnSpan', errors, { def: 1, min: 1, integer: true, label }),
         implicit: false,
       };
       for (const c of childElements(el)) {
