@@ -12,6 +12,8 @@ To release:
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-03
+
 ### Added
 
 - Optional handle hole in drawer fronts: `<Handle Shape="Circle|Rectangle|None" Width Height Offset />` under `<Cabinet>` sets it for all drawers, a `<Handle>` inside a `<Drawer>` overrides it.
