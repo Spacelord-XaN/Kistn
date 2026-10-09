@@ -247,15 +247,16 @@ main {
   gap: 0.5rem;
 }
 
-button.version {
+.version {
   padding: 0;
   border: none;
   background: none;
   color: var(--muted);
   font-size: 0.8rem;
+  text-decoration: none;
 }
 
-button.version:hover {
+.version:hover {
   color: var(--accent);
   text-decoration: underline;
 }
