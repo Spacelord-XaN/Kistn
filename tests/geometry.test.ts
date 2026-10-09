@@ -106,10 +106,11 @@ describe('drawers', () => {
     const f1 = (n: number) => (Math.round(n * 10) / 10).toString();
     const outside = frontViewSvg(result.layout!, result.boxes!);
     const inside = frontViewSvg(result.layout!, result.boxes!, { inside: true });
-    expect(outside).toContain(`${f1(b.width)} × ${f1(b.height)} × ${f1(b.depth)}`);
-    expect(outside).toContain('(outside)');
-    expect(inside).toContain(`${f1(inner.width)} × ${f1(inner.height)} × ${f1(inner.depth)}`);
-    expect(inside).toContain('(inside)');
+    // Labels show W × H only; the shared depth is in the caption.
+    expect(outside).toContain(`>${f1(b.width)} × ${f1(b.height)}<`);
+    expect(outside).toContain(`W × H × ${f1(b.depth)} mm (outside)`);
+    expect(inside).toContain(`>${f1(inner.width)} × ${f1(inner.height)}<`);
+    expect(inside).toContain(`W × H × ${f1(inner.depth)} mm (inside)`);
   });
 
   it('shows the inside volume in liters when asked', () => {
