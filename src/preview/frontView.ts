@@ -1,5 +1,5 @@
 import { CabinetLayout } from '../layout/grid';
-import { DrawerBox } from '../parts/drawer';
+import { DrawerBox, innerSize } from '../parts/drawer';
 
 const f1 = (n: number) => (Math.round(n * 10) / 10).toString();
 
@@ -44,7 +44,12 @@ function drawerFront(box: DrawerBox, clearance: number): string {
   return front + hole;
 }
 
-export function frontViewSvg(layout: CabinetLayout, boxes: DrawerBox[]): string {
+export interface FrontViewOptions {
+  /** Label drawers with their inside (usable) size instead of the outside size. */
+  inside?: boolean;
+}
+
+export function frontViewSvg(layout: CabinetLayout, boxes: DrawerBox[], opts: FrontViewOptions = {}): string {
   const { config, cols, rows } = layout;
   const { width: W, height: H, depth: D } = config;
   const fs = Math.max(W, H) / 45;
@@ -62,7 +67,8 @@ export function frontViewSvg(layout: CabinetLayout, boxes: DrawerBox[]): string 
       const cy = (b.opening.y0 + b.opening.y1) / 2;
       const comp = b.opening.def.compartments;
       const dfs = Math.min(fs * 0.8, (b.width / 10) * 0.9);
-      const lines = [`${f1(b.width)} × ${f1(b.height)} × ${f1(b.depth)}`];
+      const size = opts.inside ? innerSize(b, config.material.drawerThickness) : b;
+      const lines = [`${f1(size.width)} × ${f1(size.height)} × ${f1(size.depth)}`];
       if (comp) lines.push(`${comp.cols.length} × ${comp.rows.length} compartments`);
       const handle = b.opening.def.handle;
       const handleBottom = handle ? (handle.offset ?? b.height / 2) + handle.height / 2 : 0;
@@ -90,6 +96,6 @@ export function frontViewSvg(layout: CabinetLayout, boxes: DrawerBox[]): string 
   ${vDim(0, H, -fs * 1.2, `${f1(H)} mm`, fs)}
   ${colDims}
   ${rowDims}
-  <text class="caption" x="${W / 2}" y="${H + fs * 3.6}" font-size="${fs * 0.8}" text-anchor="middle">Depth ${f1(D)} mm · drawer sizes W × H × D</text>
+  <text class="caption" x="${W / 2}" y="${H + fs * 3.6}" font-size="${fs * 0.8}" text-anchor="middle">Depth ${f1(D)} mm · drawer sizes W × H × D (${opts.inside ? 'inside' : 'outside'})</text>
 </svg>`;
 }

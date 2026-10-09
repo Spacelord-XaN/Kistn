@@ -7,7 +7,8 @@ import { fingerCount, fingerSegments, tabIntervals } from '../src/geometry/finge
 import { rect, signedArea } from '../src/geometry/path';
 import { generateFromConfig } from '../src/generate';
 import { compartmentGeometry } from '../src/parts/compartments';
-import { handleHole } from '../src/parts/drawer';
+import { handleHole, innerSize } from '../src/parts/drawer';
+import { frontViewSvg } from '../src/preview/frontView';
 import { domParser, partArea, sumArea } from './helpers';
 
 const exampleConfig = (kerf = 0) => {
@@ -92,6 +93,21 @@ describe('drawers', () => {
     const result = generateFromConfig(exampleConfig());
     const wide = result.boxes!.find((b) => b.opening.def.colSpan === 2)!;
     expect(result.parts!.filter((p) => p.name.startsWith(wide.name + ' '))).toHaveLength(5 + 2);
+  });
+
+  it('reports the inside size in the preview when asked', () => {
+    const result = generateFromConfig(exampleConfig());
+    const dt = result.config!.material.drawerThickness;
+    const b = result.boxes![0];
+    const inner = innerSize(b, dt);
+    expect(inner).toEqual({ width: b.width - 2 * dt, height: b.height - dt, depth: b.depth - 2 * dt });
+    const f1 = (n: number) => (Math.round(n * 10) / 10).toString();
+    const outside = frontViewSvg(result.layout!, result.boxes!);
+    const inside = frontViewSvg(result.layout!, result.boxes!, { inside: true });
+    expect(outside).toContain(`${f1(b.width)} × ${f1(b.height)} × ${f1(b.depth)}`);
+    expect(outside).toContain('(outside)');
+    expect(inside).toContain(`${f1(inner.width)} × ${f1(inner.height)} × ${f1(inner.depth)}`);
+    expect(inside).toContain('(inside)');
   });
 
   it('leaves out open slots but keeps their shelves and dividers', () => {

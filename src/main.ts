@@ -8,6 +8,7 @@ import { renderChangelog } from './changelog';
 import changelog from '../CHANGELOG.md?raw';
 
 const STORAGE_KEY = 'boxgen.xml';
+const INSIDE_DIMS_KEY = 'boxgen.insideDims';
 const UPDATE_DELAY_MS = 250;
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -16,6 +17,7 @@ const errorsEl = $('errors');
 const summaryEl = $('summary');
 const exportBtn = $<HTMLButtonElement>('export');
 const fileInput = $<HTMLInputElement>('file');
+const insideDims = $<HTMLInputElement>('inside-dims');
 
 let current: GenerateResult = { errors: [] };
 
@@ -35,8 +37,20 @@ function store(text: string) {
   }
 }
 
+try {
+  insideDims.checked = localStorage.getItem(INSIDE_DIMS_KEY) === 'true';
+} catch {
+  // Storage unavailable — default to outside dimensions.
+}
+
 function escapeHtml(s: string): string {
   return s.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]!);
+}
+
+function renderPreview() {
+  if (current.layout && current.boxes) {
+    previewEl.innerHTML = frontViewSvg(current.layout, current.boxes, { inside: insideDims.checked });
+  }
 }
 
 function update(text: string) {
@@ -47,9 +61,7 @@ function update(text: string) {
   errorsEl.innerHTML = ok ? '' : `<ul>${current.errors.map((e) => `<li>${escapeHtml(e)}</li>`).join('')}</ul>`;
   exportBtn.disabled = !ok;
 
-  if (current.layout && current.boxes) {
-    previewEl.innerHTML = frontViewSvg(current.layout, current.boxes);
-  }
+  renderPreview();
   // Keep the last good preview visible but faded while the config is broken.
   previewEl.classList.toggle('stale', !ok);
 
@@ -109,6 +121,15 @@ exportBtn.addEventListener('click', () => {
   if (!cutGroups || !config || !layout || !boxes) return;
   const sheet = layoutParts(cutGroups, config.export.spacing);
   download('boxgen.svg', sheetToSvg(sheet, layout, boxes), 'image/svg+xml');
+});
+
+insideDims.addEventListener('change', () => {
+  try {
+    localStorage.setItem(INSIDE_DIMS_KEY, String(insideDims.checked));
+  } catch {
+    // Best effort, like the XML autosave.
+  }
+  renderPreview();
 });
 
 const versionBtn = $<HTMLButtonElement>('version');

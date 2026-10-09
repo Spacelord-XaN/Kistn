@@ -32,6 +32,11 @@ export function drawerBox(layout: CabinetLayout, opening: DrawerOpening): Drawer
   };
 }
 
+/** Usable space inside the open-topped box. */
+export function innerSize(box: DrawerBox, dt: number) {
+  return { width: box.width - 2 * dt, height: box.height - dt, depth: box.depth - 2 * dt };
+}
+
 const ELLIPSE_SEGMENTS = 48;
 /** Minimum material left around the handle hole (mm). */
 const HANDLE_MARGIN = 2;

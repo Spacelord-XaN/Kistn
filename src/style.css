@@ -175,6 +175,17 @@ main {
   padding-top: 0.5rem;
 }
 
+.view-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  padding-top: 0.25rem;
+  cursor: pointer;
+}
+
 .front-view .wall {
   fill: var(--wood);
   stroke: var(--wood-dark);
