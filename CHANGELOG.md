@@ -12,6 +12,10 @@ To release:
 
 ## [Unreleased]
 
+### Added
+
+- "Volume" checkbox below the preview: shows each drawer's usable inside volume in liters. The summary line shows the total.
+
 ## [0.2.1] - 2026-10-09
 
 ### Added

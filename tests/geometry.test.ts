@@ -7,8 +7,8 @@ import { fingerCount, fingerSegments, tabIntervals } from '../src/geometry/finge
 import { rect, signedArea } from '../src/geometry/path';
 import { generateFromConfig } from '../src/generate';
 import { compartmentGeometry } from '../src/parts/compartments';
-import { handleHole, innerSize } from '../src/parts/drawer';
-import { frontViewSvg } from '../src/preview/frontView';
+import { handleHole, innerSize, innerVolume } from '../src/parts/drawer';
+import { formatLiters, frontViewSvg } from '../src/preview/frontView';
 import { domParser, partArea, sumArea } from './helpers';
 
 const exampleConfig = (kerf = 0) => {
@@ -108,6 +108,17 @@ describe('drawers', () => {
     expect(outside).toContain('(outside)');
     expect(inside).toContain(`${f1(inner.width)} × ${f1(inner.height)} × ${f1(inner.depth)}`);
     expect(inside).toContain('(inside)');
+  });
+
+  it('shows the inside volume in liters when asked', () => {
+    const result = generateFromConfig(exampleConfig());
+    const dt = result.config!.material.drawerThickness;
+    const b = result.boxes![0];
+    const inner = innerSize(b, dt);
+    expect(innerVolume(b, dt)).toBeCloseTo((inner.width * inner.height * inner.depth) / 1e6);
+    const label = `>${formatLiters(innerVolume(b, dt))} L<`;
+    expect(frontViewSvg(result.layout!, result.boxes!, { volume: true })).toContain(label);
+    expect(frontViewSvg(result.layout!, result.boxes!)).not.toContain(' L<');
   });
 
   it('leaves out open slots but keeps their shelves and dividers', () => {

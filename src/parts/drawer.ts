@@ -37,6 +37,12 @@ export function innerSize(box: DrawerBox, dt: number) {
   return { width: box.width - 2 * dt, height: box.height - dt, depth: box.depth - 2 * dt };
 }
 
+/** Usable inside volume in liters. */
+export function innerVolume(box: DrawerBox, dt: number): number {
+  const { width, height, depth } = innerSize(box, dt);
+  return (width * height * depth) / 1e6;
+}
+
 const ELLIPSE_SEGMENTS = 48;
 /** Minimum material left around the handle hole (mm). */
 const HANDLE_MARGIN = 2;

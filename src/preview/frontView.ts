@@ -1,7 +1,10 @@
 import { CabinetLayout } from '../layout/grid';
-import { DrawerBox, innerSize } from '../parts/drawer';
+import { DrawerBox, innerSize, innerVolume } from '../parts/drawer';
 
 const f1 = (n: number) => (Math.round(n * 10) / 10).toString();
+
+/** Liters with 2 decimals below 1 L, 1 decimal above. */
+export const formatLiters = (l: number) => (l < 1 ? l.toFixed(2) : l.toFixed(1));
 
 /** Horizontal dimension line with end ticks and a centred label above it. */
 function hDim(x0: number, x1: number, y: number, label: string, fs: number): string {
@@ -47,6 +50,8 @@ function drawerFront(box: DrawerBox, clearance: number): string {
 export interface FrontViewOptions {
   /** Label drawers with their inside (usable) size instead of the outside size. */
   inside?: boolean;
+  /** Show each drawer's inside volume in liters. */
+  volume?: boolean;
 }
 
 export function frontViewSvg(layout: CabinetLayout, boxes: DrawerBox[], opts: FrontViewOptions = {}): string {
@@ -67,8 +72,10 @@ export function frontViewSvg(layout: CabinetLayout, boxes: DrawerBox[], opts: Fr
       const cy = (b.opening.y0 + b.opening.y1) / 2;
       const comp = b.opening.def.compartments;
       const dfs = Math.min(fs * 0.8, (b.width / 10) * 0.9);
-      const size = opts.inside ? innerSize(b, config.material.drawerThickness) : b;
+      const dt = config.material.drawerThickness;
+      const size = opts.inside ? innerSize(b, dt) : b;
       const lines = [`${f1(size.width)} × ${f1(size.height)} × ${f1(size.depth)}`];
+      if (opts.volume) lines.push(`${formatLiters(innerVolume(b, dt))} L`);
       if (comp) lines.push(`${comp.cols.length} × ${comp.rows.length} compartments`);
       const handle = b.opening.def.handle;
       const handleBottom = handle ? (handle.offset ?? b.height / 2) + handle.height / 2 : 0;

@@ -2,13 +2,15 @@ import { basicSetup, EditorView } from 'codemirror';
 import { xml } from '@codemirror/lang-xml';
 import { EXAMPLE_XML } from './example';
 import { generate, GenerateResult } from './generate';
-import { frontViewSvg } from './preview/frontView';
+import { formatLiters, frontViewSvg } from './preview/frontView';
+import { innerVolume } from './parts/drawer';
 import { layoutParts, sheetToSvg } from './export/svg';
 import { renderChangelog } from './changelog';
 import changelog from '../CHANGELOG.md?raw';
 
 const STORAGE_KEY = 'boxgen.xml';
 const INSIDE_DIMS_KEY = 'boxgen.insideDims';
+const VOLUME_KEY = 'boxgen.showVolume';
 const UPDATE_DELAY_MS = 250;
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -18,6 +20,7 @@ const summaryEl = $('summary');
 const exportBtn = $<HTMLButtonElement>('export');
 const fileInput = $<HTMLInputElement>('file');
 const insideDims = $<HTMLInputElement>('inside-dims');
+const showVolume = $<HTMLInputElement>('show-volume');
 
 let current: GenerateResult = { errors: [] };
 
@@ -39,8 +42,9 @@ function store(text: string) {
 
 try {
   insideDims.checked = localStorage.getItem(INSIDE_DIMS_KEY) === 'true';
+  showVolume.checked = localStorage.getItem(VOLUME_KEY) === 'true';
 } catch {
-  // Storage unavailable — default to outside dimensions.
+  // Storage unavailable — default to outside dimensions, no volume.
 }
 
 function escapeHtml(s: string): string {
@@ -49,7 +53,10 @@ function escapeHtml(s: string): string {
 
 function renderPreview() {
   if (current.layout && current.boxes) {
-    previewEl.innerHTML = frontViewSvg(current.layout, current.boxes, { inside: insideDims.checked });
+    previewEl.innerHTML = frontViewSvg(current.layout, current.boxes, {
+      inside: insideDims.checked,
+      volume: showVolume.checked,
+    });
   }
 }
 
@@ -65,8 +72,10 @@ function update(text: string) {
   // Keep the last good preview visible but faded while the config is broken.
   previewEl.classList.toggle('stale', !ok);
 
-  if (ok && current.parts) {
-    summaryEl.textContent = `${current.boxes!.length} drawers · ${current.parts.length} parts`;
+  if (ok && current.parts && current.config) {
+    const dt = current.config.material.drawerThickness;
+    const liters = current.boxes!.reduce((sum, b) => sum + innerVolume(b, dt), 0);
+    summaryEl.textContent = `${current.boxes!.length} drawers · ${formatLiters(liters)} L · ${current.parts.length} parts`;
   } else {
     summaryEl.textContent = '';
   }
@@ -123,14 +132,18 @@ exportBtn.addEventListener('click', () => {
   download('boxgen.svg', sheetToSvg(sheet, layout, boxes), 'image/svg+xml');
 });
 
-insideDims.addEventListener('change', () => {
-  try {
-    localStorage.setItem(INSIDE_DIMS_KEY, String(insideDims.checked));
-  } catch {
-    // Best effort, like the XML autosave.
-  }
-  renderPreview();
-});
+function persistOption(input: HTMLInputElement, key: string) {
+  input.addEventListener('change', () => {
+    try {
+      localStorage.setItem(key, String(input.checked));
+    } catch {
+      // Best effort, like the XML autosave.
+    }
+    renderPreview();
+  });
+}
+persistOption(insideDims, INSIDE_DIMS_KEY);
+persistOption(showVolume, VOLUME_KEY);
 
 const versionBtn = $<HTMLButtonElement>('version');
 const notesDialog = $<HTMLDialogElement>('notes');

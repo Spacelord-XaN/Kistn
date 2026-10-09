@@ -175,6 +175,12 @@ main {
   padding-top: 0.5rem;
 }
 
+.view-options {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
 .view-option {
   display: flex;
   align-items: center;
