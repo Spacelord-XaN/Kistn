@@ -37,6 +37,8 @@ export interface DrawerDef {
   compartments?: CompartmentDef;
   /** Handle hole in the front; undefined = none. */
   handle?: HandleDef;
+  /** False = open slot: the opening stays, but no drawer box is generated. */
+  drawer: boolean;
   /** True when generated for a cell not covered by any <Drawer>. */
   implicit: boolean;
 }

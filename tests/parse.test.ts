@@ -12,9 +12,10 @@ describe('parseConfig', () => {
     expect(config!.rows).toEqual([1, 2, 1]);
     expect(config!.cols).toEqual([1, 1, 1]);
     expect(config!.material.kerf).toBe(0.15);
-    // 2 explicit + 5 implicit (9 cells, 2 + 2 covered by spans)
+    // 3 explicit + 4 implicit (9 cells, 2 + 2 covered by spans)
     expect(config!.drawers).toHaveLength(7);
-    expect(config!.drawers.filter((d) => d.implicit)).toHaveLength(5);
+    expect(config!.drawers.filter((d) => d.implicit)).toHaveLength(4);
+    expect(config!.drawers.filter((d) => !d.drawer)).toHaveLength(1);
     const wide = config!.drawers.find((d) => d.colSpan === 2)!;
     expect(wide.compartments).toEqual({ rows: [1, 1], cols: [2, 1] });
   });
@@ -56,6 +57,41 @@ describe('parseConfig', () => {
     expect(errors.join('\n')).toMatch(/"Shape" must be one of Circle, Rectangle, None, got "Oval"/);
     expect(errors.join('\n')).toMatch(/unknown attribute "Size"/);
     expect(errors.join('\n')).toMatch(/"Width" must be at least 1/);
+  });
+
+  it('has drawers by default; Drawers on <Grid> sets the default and Drawer overrides it', () => {
+    expect(parse(`<Cabinet Width="300" Height="200" Depth="150" />`).config!.drawers[0].drawer).toBe(true);
+    const { config, errors } = parse(`
+      <Cabinet Width="300" Height="200" Depth="150">
+        <Handle Width="20" />
+        <Grid Rows="*,*,*" Columns="*" Drawers="false">
+          <Drawer Row="0" Drawer="TRUE" />
+          <Drawer Row="1" />
+        </Grid>
+      </Cabinet>`);
+    expect(errors).toEqual([]);
+    const [d0, d1, d2] = config!.drawers;
+    expect([d0.drawer, d1.drawer, d2.drawer]).toEqual([true, false, false]);
+    expect(d2.implicit).toBe(true);
+    // Open slots don't inherit the cabinet handle.
+    expect(d0.handle).toBeDefined();
+    expect(d1.handle).toBeUndefined();
+    expect(d2.handle).toBeUndefined();
+  });
+
+  it('reports bad Drawer values and children of open slots', () => {
+    const { errors } = parse(`
+      <Cabinet Width="300" Height="200" Depth="150">
+        <Grid Rows="*,*" Columns="*" Drawers="maybe">
+          <Drawer Row="0" Drawer="no" />
+          <Drawer Row="1" Drawer="False"><Handle /><Compartments Rows="*,*" /></Drawer>
+        </Grid>
+      </Cabinet>`);
+    expect(errors).toHaveLength(4);
+    expect(errors.join('\n')).toMatch(/<Grid>: "Drawers" must be True or False, got "maybe"/);
+    expect(errors.join('\n')).toMatch(/"Drawer" must be True or False, got "no"/);
+    expect(errors.join('\n')).toMatch(/<Handle> is not allowed with Drawer="False"/);
+    expect(errors.join('\n')).toMatch(/<Compartments> is not allowed with Drawer="False"/);
   });
 
   it('supports XAML property-element definitions', () => {

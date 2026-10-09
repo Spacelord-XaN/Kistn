@@ -14,6 +14,10 @@ export const EXAMPLE_XML = `<Cabinet Width="400" Height="300" Depth="250">
     <!-- Tall drawer spanning the bottom two rows -->
     <Drawer Row="1" Column="0" RowSpan="2" />
 
+    <!-- Open slot: shelves and dividers stay, no drawer is generated.
+         Drawers="False" on <Grid> makes this the default for all cells. -->
+    <Drawer Row="2" Column="2" Drawer="False" />
+
     <!-- Cells without a <Drawer> get a plain 1x1 drawer automatically -->
   </Grid>
 </Cabinet>

@@ -58,6 +58,17 @@ function numberAttr(
   return value;
 }
 
+function boolAttr(el: Element, name: string, errors: Errors, opts: { def: boolean; label?: string }): boolean {
+  const label = opts.label ?? `<${el.tagName}>`;
+  const raw = el.getAttribute(name);
+  if (raw === null) return opts.def;
+  const value = raw.trim().toLowerCase();
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  errors.add(`${label}: "${name}" must be True or False, got "${raw}"`);
+  return opts.def;
+}
+
 function childElements(el: Element, tag?: string): Element[] {
   return Array.from(el.children).filter((c) => tag === undefined || c.tagName === tag);
 }
@@ -210,8 +221,10 @@ export function parseConfig(xml: string, parser: DOMParser = new DOMParser()): P
   let rows: number[] | undefined = [1];
   let cols: number[] | undefined = [1];
   const drawers: DrawerDef[] = [];
+  let drawersDefault = true;
   if (gridEl) {
-    checkAttributes(gridEl, ['Rows', 'Columns'], errors);
+    checkAttributes(gridEl, ['Rows', 'Columns', 'Drawers'], errors);
+    drawersDefault = boolAttr(gridEl, 'Drawers', errors, { def: true, label: '<Grid>' });
     rows = readDefinitions(gridEl, 'Row', errors, '<Grid>');
     cols = readDefinitions(gridEl, 'Column', errors, '<Grid>');
     childElements(gridEl).forEach((el) => {
@@ -221,18 +234,22 @@ export function parseConfig(xml: string, parser: DOMParser = new DOMParser()): P
         return;
       }
       const label = describeDrawer(el, drawers.length);
-      checkAttributes(el, ['Row', 'Column', 'RowSpan', 'ColumnSpan'], errors);
+      checkAttributes(el, ['Row', 'Column', 'RowSpan', 'ColumnSpan', 'Drawer'], errors);
+      const hasDrawer = boolAttr(el, 'Drawer', errors, { def: drawersDefault, label });
       const drawer: DrawerDef = {
         row: numberAttr(el, 'Row', errors, { def: 0, min: 0, integer: true, label }),
         col: numberAttr(el, 'Column', errors, { def: 0, min: 0, integer: true, label }),
         rowSpan: numberAttr(el, 'RowSpan', errors, { def: 1, min: 1, integer: true, label }),
         colSpan: numberAttr(el, 'ColumnSpan', errors, { def: 1, min: 1, integer: true, label }),
-        handle,
+        handle: hasDrawer ? handle : undefined,
+        drawer: hasDrawer,
         implicit: false,
       };
       for (const c of childElements(el)) {
         if (c.tagName !== 'Compartments' && c.tagName !== 'Handle') {
           errors.add(`${label}: unexpected element <${c.tagName}>`);
+        } else if (!hasDrawer) {
+          errors.add(`${label}: <${c.tagName}> is not allowed with Drawer="False"`);
         }
       }
       const compEl = childElements(el, 'Compartments')[0];
@@ -277,7 +294,15 @@ export function parseConfig(xml: string, parser: DOMParser = new DOMParser()): P
   for (let r = 0; r < rows.length; r++) {
     for (let c = 0; c < cols.length; c++) {
       if (owner[r][c] < 0) {
-        drawers.push({ row: r, col: c, rowSpan: 1, colSpan: 1, handle, implicit: true });
+        drawers.push({
+          row: r,
+          col: c,
+          rowSpan: 1,
+          colSpan: 1,
+          handle: drawersDefault ? handle : undefined,
+          drawer: drawersDefault,
+          implicit: true,
+        });
       }
     }
   }

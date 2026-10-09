@@ -12,6 +12,10 @@ To release:
 
 ## [Unreleased]
 
+### Added
+
+- Optional drawers: `Drawer="False"` on a `<Drawer>` leaves that slot open (shelves and dividers stay, no drawer parts are generated). `Drawers="False"` on `<Grid>` makes that the default for all cells, and `Drawer="True"` turns individual drawers back on.
+
 ## [0.2.0] - 2026-10-03
 
 ### Added

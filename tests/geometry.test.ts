@@ -93,6 +93,31 @@ describe('drawers', () => {
     const wide = result.boxes!.find((b) => b.opening.def.colSpan === 2)!;
     expect(result.parts!.filter((p) => p.name.startsWith(wide.name + ' '))).toHaveLength(5 + 2);
   });
+
+  it('leaves out open slots but keeps their shelves and dividers', () => {
+    const config = exampleConfig();
+    const result = generateFromConfig(config);
+    const open = result.layout!.drawers.filter((o) => !o.def.drawer);
+    expect(open).toHaveLength(1);
+    expect(result.boxes).toHaveLength(result.layout!.drawers.length - 1);
+    expect(result.parts!.some((p) => p.label.startsWith('D2.2'))).toBe(false);
+
+    const allDrawers = generateFromConfig({
+      ...config,
+      drawers: config.drawers.map((d) => ({ ...d, drawer: true })),
+    });
+    expect(result.layout!.shelves).toEqual(allDrawers.layout!.shelves);
+    expect(result.layout!.verticals).toEqual(allDrawers.layout!.verticals);
+  });
+
+  it('produces only cabinet and divider parts without any drawers', () => {
+    const config = exampleConfig();
+    const result = generateFromConfig({ ...config, drawers: config.drawers.map((d) => ({ ...d, drawer: false })) });
+    expect(result.errors).toEqual([]);
+    expect(result.boxes).toEqual([]);
+    expect(result.parts!.every((p) => !p.label.startsWith('D'))).toBe(true);
+    expect(result.cutGroups).toHaveLength(2);
+  });
 });
 
 describe('handle hole', () => {

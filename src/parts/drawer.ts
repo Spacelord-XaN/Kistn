@@ -122,5 +122,5 @@ export function drawerParts(config: CabinetConfig, box: DrawerBox): Part[] {
 }
 
 export function allDrawerBoxes(layout: CabinetLayout): DrawerBox[] {
-  return layout.drawers.map((o) => drawerBox(layout, o));
+  return layout.drawers.filter((o) => o.def.drawer).map((o) => drawerBox(layout, o));
 }
