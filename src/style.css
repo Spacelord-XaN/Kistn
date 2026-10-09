@@ -202,6 +202,21 @@ main {
   fill: var(--opening);
 }
 
+/* Open slot: the cabinet back shows through. */
+.front-view .opening.open {
+  fill: var(--wood);
+  stroke: var(--wood-dark);
+  stroke-width: 0.5;
+}
+
+/* Vent hole in the back, hidden behind the drawer front. */
+.front-view .vent {
+  fill: none;
+  stroke: var(--wood-dark);
+  stroke-width: 0.5;
+  stroke-dasharray: 2 1.5;
+}
+
 .front-view .drawer {
   fill: var(--drawer);
   stroke: var(--wood-dark);

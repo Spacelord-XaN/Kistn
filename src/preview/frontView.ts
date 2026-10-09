@@ -1,5 +1,5 @@
 import { CabinetLayout } from '../layout/grid';
-import { DrawerBox, innerSize, innerVolume } from '../parts/drawer';
+import { DrawerBox, innerSize, innerVolume, ventHole } from '../parts/drawer';
 
 const f1 = (n: number) => (Math.round(n * 10) / 10).toString();
 
@@ -30,10 +30,19 @@ function vDim(y0: number, y1: number, x: number, label: string, fs: number): str
   </g>`;
 }
 
+/** The vent hole in the back behind the drawer, as a hidden (dashed) outline. */
+function ventOutline(box: DrawerBox): string {
+  const hole = ventHole(box);
+  if (!hole) return '';
+  return `<polygon class="vent" points="${hole.map((p) => `${f1(p.x)},${f1(p.y)}`).join(' ')}"/>`;
+}
+
 function drawerFront(box: DrawerBox, clearance: number): string {
   const x0 = box.opening.x0 + clearance;
   const y0 = box.opening.y0 + clearance;
-  const front = `<rect class="drawer" x="${f1(x0)}" y="${f1(y0)}" width="${f1(box.width)}" height="${f1(box.height)}"/>`;
+  const front =
+    `<rect class="drawer" x="${f1(x0)}" y="${f1(y0)}" width="${f1(box.width)}" height="${f1(box.height)}"/>` +
+    ventOutline(box);
   const handle = box.opening.def.handle;
   if (!handle) return front;
   const cx = x0 + box.width / 2;
@@ -63,7 +72,11 @@ export function frontViewSvg(layout: CabinetLayout, boxes: DrawerBox[], opts: Fr
   const c = config.material.clearance;
 
   const openings = layout.drawers
-    .map((o) => `<rect class="opening" x="${o.x0}" y="${o.y0}" width="${o.x1 - o.x0}" height="${o.y1 - o.y0}"/>`)
+    .map((o) => {
+      // Open slots show the cabinet back; behind drawers it stays dark.
+      const cls = o.def.drawer ? 'opening' : 'opening open';
+      return `<rect class="${cls}" x="${o.x0}" y="${o.y0}" width="${o.x1 - o.x0}" height="${o.y1 - o.y0}"/>`;
+    })
     .join('');
 
   const fronts = boxes
@@ -90,6 +103,8 @@ export function frontViewSvg(layout: CabinetLayout, boxes: DrawerBox[], opts: Fr
     })
     .join('');
 
+  const ventNote = boxes.some((b) => b.opening.def.vent) ? ' · dashed: vent in the back' : '';
+
   const colDims = cols.map((s) => hDim(s.start, s.end, H + fs * 1.6, f1(s.end - s.start), fs * 0.75)).join('');
   const rowDims = rows
     .map((s) => vDim(s.start, s.end, W + fs * 2.2, f1(s.end - s.start), fs * 0.75))
@@ -103,6 +118,6 @@ export function frontViewSvg(layout: CabinetLayout, boxes: DrawerBox[], opts: Fr
   ${vDim(0, H, -fs * 1.2, `${f1(H)} mm`, fs)}
   ${colDims}
   ${rowDims}
-  <text class="caption" x="${W / 2}" y="${H + fs * 3.6}" font-size="${fs * 0.8}" text-anchor="middle">Depth ${f1(D)} mm · drawer sizes W × H × D (${opts.inside ? 'inside' : 'outside'})</text>
+  <text class="caption" x="${W / 2}" y="${H + fs * 3.6}" font-size="${fs * 0.8}" text-anchor="middle">Depth ${f1(D)} mm · drawer sizes W × H × D (${opts.inside ? 'inside' : 'outside'})${ventNote}</text>
 </svg>`;
 }
