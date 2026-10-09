@@ -12,6 +12,12 @@ To release:
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-10-09
+
+### Fixed
+
+- 0.3.0 could not be published because an outdated test failed the build. 0.3.1 is the same release with that test fixed.
+
 ## [0.3.0] - 2026-10-09
 
 ### Added
