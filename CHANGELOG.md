@@ -21,6 +21,7 @@ To release:
 
 - Renamed from BoxGen to Kistn. Saved and exported files are now called `kistn.xml` and `kistn.svg`.
 - Open slots in the preview show the cabinet back in wood color instead of black, so they no longer look like there is no back.
+- Drawer labels in the preview show only width × height. The drawer depth, the same for all drawers, moves to the caption below the cabinet.
 
 ## [0.2.2] - 2026-10-09
 

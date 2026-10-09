@@ -87,7 +87,7 @@ export function frontViewSvg(layout: CabinetLayout, boxes: DrawerBox[], opts: Fr
       const dfs = Math.min(fs * 0.8, (b.width / 10) * 0.9);
       const dt = config.material.drawerThickness;
       const size = opts.inside ? innerSize(b, dt) : b;
-      const lines = [`${f1(size.width)} × ${f1(size.height)} × ${f1(size.depth)}`];
+      const lines = [`${f1(size.width)} × ${f1(size.height)}`];
       if (opts.volume) lines.push(`${formatLiters(innerVolume(b, dt))} L`);
       if (comp) lines.push(`${comp.cols.length} × ${comp.rows.length} compartments`);
       const handle = b.opening.def.handle;
@@ -103,6 +103,13 @@ export function frontViewSvg(layout: CabinetLayout, boxes: DrawerBox[], opts: Fr
     })
     .join('');
 
+  // All drawers share the same depth, so it goes in the caption instead of on every front.
+  let drawerNote = '';
+  if (boxes.length) {
+    const dt = config.material.drawerThickness;
+    const depth = opts.inside ? innerSize(boxes[0], dt).depth : boxes[0].depth;
+    drawerNote = ` · drawers W × H × ${f1(depth)} mm (${opts.inside ? 'inside' : 'outside'})`;
+  }
   const ventNote = boxes.some((b) => b.opening.def.vent) ? ' · dashed: vent in the back' : '';
 
   const colDims = cols.map((s) => hDim(s.start, s.end, H + fs * 1.6, f1(s.end - s.start), fs * 0.75)).join('');
@@ -118,6 +125,6 @@ export function frontViewSvg(layout: CabinetLayout, boxes: DrawerBox[], opts: Fr
   ${vDim(0, H, -fs * 1.2, `${f1(H)} mm`, fs)}
   ${colDims}
   ${rowDims}
-  <text class="caption" x="${W / 2}" y="${H + fs * 3.6}" font-size="${fs * 0.8}" text-anchor="middle">Depth ${f1(D)} mm · drawer sizes W × H × D (${opts.inside ? 'inside' : 'outside'})${ventNote}</text>
+  <text class="caption" x="${W / 2}" y="${H + fs * 3.6}" font-size="${fs * 0.8}" text-anchor="middle">Depth ${f1(D)} mm${drawerNote}${ventNote}</text>
 </svg>`;
 }
