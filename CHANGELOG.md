@@ -12,6 +12,10 @@ To release:
 
 ## [Unreleased]
 
+### Added
+
+- Optional vent hole in the cabinet back behind each drawer, so air can flow and drawers slide in and out without suction: `<Vent Shape="Circle|Rectangle|None" Width Height Offset />` under `<Cabinet>` sets it for all drawers, a `<Vent>` inside a `<Drawer>` overrides it. Open slots get no vent.
+
 ### Changed
 
 - Renamed from BoxGen to Kistn. Saved and exported files are now called `kistn.xml` and `kistn.svg`.

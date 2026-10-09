@@ -3,6 +3,8 @@ export const EXAMPLE_XML = `<Cabinet Width="400" Height="300" Depth="250">
   <Export Spacing="5" />
   <!-- Handle hole in every drawer front; Shape is Circle, Rectangle or None -->
   <Handle Shape="Circle" Width="30" Height="20" Offset="15" />
+  <!-- Air hole in the cabinet back behind every drawer, so drawers slide without suction -->
+  <Vent Shape="Circle" Width="20" />
 
   <Grid Rows="1*, 2*, 1*" Columns="1*, 1*, 1*">
     <!-- Wide drawer across the first two columns, split into compartments -->

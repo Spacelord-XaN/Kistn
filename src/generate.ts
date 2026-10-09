@@ -30,7 +30,7 @@ export function generateFromConfig(config: CabinetConfig): GenerateResult {
   const drawerErrors = boxes.flatMap((b) => [...validateDrawer(config, b), ...validateCompartments(config, b)]);
   if (drawerErrors.length) return { errors: drawerErrors, config, layout, boxes };
 
-  const groups = [cabinetParts(layout), dividerParts(layout), ...boxes.map((b) => drawerParts(config, b))];
+  const groups = [cabinetParts(layout, boxes), dividerParts(layout), ...boxes.map((b) => drawerParts(config, b))];
   const parts = groups.flat();
   const cutGroups = groups.map((g) => g.map((p) => applyKerf(p, config.material.kerf)));
   return { errors: [], config, layout, boxes, parts, cutParts: cutGroups.flat(), cutGroups };

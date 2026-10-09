@@ -1,14 +1,15 @@
 import { tabIntervals } from '../geometry/fingers';
 import { EdgeSpec, buildPanel, Part } from '../geometry/panel';
-import { Polygon, rect } from '../geometry/path';
-import { CabinetLayout } from '../layout/grid';
+import { bandBeside, Bounds, Polygon, rect } from '../geometry/path';
+import { CabinetLayout, DrawerOpening } from '../layout/grid';
+import { DrawerBox, ventHole } from './drawer';
 
 /*
  * Corner-cube priority: sides > top/bottom > back. The higher-priority panel
  * owns the fingers at the ends of each jointed edge and the shared corner cubes.
  */
 
-export function cabinetParts(layout: CabinetLayout): Part[] {
+export function cabinetParts(layout: CabinetLayout, boxes: DrawerBox[]): Part[] {
   const { config, t, innerDepth: dd, shelves, verticals } = layout;
   const { width: W, height: H, depth: D } = config;
   const fw = config.material.fingerWidth;
@@ -33,6 +34,30 @@ export function cabinetParts(layout: CabinetLayout): Part[] {
     ...verticals.flatMap((v) => tabIntervals(v.y0, v.y1, fw, 'all').map(([a, b]) => rect(v.x, a, v.x + t, b))),
   ];
 
+  // Vent holes in the back, by the opening they sit behind.
+  const vents = new Map<DrawerOpening, Polygon>();
+  for (const b of boxes) {
+    const hole = ventHole(b);
+    if (hole) vents.set(b.opening, hole);
+  }
+
+  const back = buildPanel('Cabinet Back', 'C-B', {
+    width: W,
+    height: H,
+    edges: [finger(false), finger(false), finger(false), finger(false)],
+    holes: [...backSlots, ...vents.values()],
+  });
+  if (vents.size) {
+    // Keep the engraved code off the vents: use the tallest hole-free band of any opening.
+    back.labelBox = layout.drawers
+      .map((o): Bounds => {
+        const area = { minX: o.x0, maxX: o.x1, minY: o.y0, maxY: o.y1 };
+        const vent = vents.get(o);
+        return vent ? bandBeside(area, vent) : area;
+      })
+      .reduce((a, b) => (b.maxY - b.minY > a.maxY - a.minY ? b : a));
+  }
+
   const side = (name: string, label: string, holes: Polygon[]) =>
     buildPanel(name, label, {
       width: D,
@@ -53,12 +78,7 @@ export function cabinetParts(layout: CabinetLayout): Part[] {
     });
 
   return [
-    buildPanel('Cabinet Back', 'C-B', {
-      width: W,
-      height: H,
-      edges: [finger(false), finger(false), finger(false), finger(false)],
-      holes: backSlots,
-    }),
+    back,
     side('Cabinet Left', 'C-L', sideSlots('leftEnd')),
     side('Cabinet Right', 'C-R', sideSlots('rightEnd')),
     cap('Cabinet Top', 'C-T', capSlots('topEnd')),

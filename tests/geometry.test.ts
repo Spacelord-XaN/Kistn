@@ -4,10 +4,10 @@ import { EXAMPLE_XML } from '../src/example';
 import { applyKerf } from '../src/export/kerf';
 import { layoutParts, sheetToSvg } from '../src/export/svg';
 import { fingerCount, fingerSegments, tabIntervals } from '../src/geometry/fingers';
-import { rect, signedArea } from '../src/geometry/path';
+import { bounds, rect, signedArea } from '../src/geometry/path';
 import { generateFromConfig } from '../src/generate';
 import { compartmentGeometry } from '../src/parts/compartments';
-import { handleHole, innerSize, innerVolume } from '../src/parts/drawer';
+import { handleHole, innerSize, innerVolume, ventHole } from '../src/parts/drawer';
 import { formatLiters, frontViewSvg } from '../src/preview/frontView';
 import { domParser, partArea, sumArea } from './helpers';
 
@@ -47,7 +47,7 @@ describe('fingers', () => {
 describe('volume conservation', () => {
   // If every finger, corner cube, tab and slot lines up, the summed part
   // areas × thickness equal the solid volume of the assembled object.
-  it('cabinet shell + dividers', () => {
+  it('cabinet shell + dividers, including vent holes', () => {
     const result = generateFromConfig(exampleConfig());
     expect(result.errors).toEqual([]);
     const { width: W, height: H, depth: D } = result.config!;
@@ -56,7 +56,9 @@ describe('volume conservation', () => {
     const shell = W * H * D - (W - 2 * t) * (H - 2 * t) * (D - t);
     const dividers =
       shelves.reduce((s, sh) => s + (sh.x1 - sh.x0) * dd, 0) + verticals.reduce((s, v) => s + (v.y1 - v.y0) * dd, 0);
-    expect(sumArea(parts) * t).toBeCloseTo(shell + dividers * t, 3);
+    const vents = result.boxes!.reduce((s, b) => s + Math.abs(signedArea(ventHole(b)!)), 0);
+    expect(vents).toBeGreaterThan(0);
+    expect(sumArea(parts) * t).toBeCloseTo(shell + dividers * t - vents * t, 3);
   });
 
   it('every drawer box, including handle hole and compartments', () => {
@@ -178,6 +180,56 @@ describe('handle hole', () => {
     config.drawers[0].handle = { shape: 'rectangle', width: 1000, height: 20 };
     const result = generateFromConfig(config);
     expect(result.errors.join('\n')).toMatch(/handle \(1000 × 20 mm\) does not fit the front/);
+  });
+});
+
+describe('vent hole', () => {
+  const backOf = (result: ReturnType<typeof generateFromConfig>) =>
+    result.parts!.find((p) => p.name === 'Cabinet Back')!;
+
+  it('is cut into the cabinet back, centred behind each drawer opening', () => {
+    const result = generateFromConfig(exampleConfig());
+    const back = backOf(result);
+    for (const box of result.boxes!) {
+      const vent = ventHole(box)!;
+      expect(back.holes).toContainEqual(vent);
+      const xs = vent.map((p) => p.x);
+      const ys = vent.map((p) => p.y);
+      const { x0, x1, y0, y1 } = box.opening;
+      expect((Math.min(...xs) + Math.max(...xs)) / 2).toBeCloseTo((x0 + x1) / 2);
+      expect((Math.min(...ys) + Math.max(...ys)) / 2).toBeCloseTo((y0 + y1) / 2);
+      expect(Math.max(...xs) - Math.min(...xs)).toBeCloseTo(20);
+    }
+    // Nothing behind the open slot.
+    const open = result.layout!.drawers.find((o) => !o.def.drawer)!;
+    const inOpen = back.holes.filter((h) =>
+      h.every((p) => p.x > open.x0 && p.x < open.x1 && p.y > open.y0 && p.y < open.y1),
+    );
+    expect(inOpen).toHaveLength(0);
+  });
+
+  it('puts the cabinet back label clear of the vents', () => {
+    const result = generateFromConfig(exampleConfig());
+    const box = backOf(result).labelBox!;
+    for (const b of result.boxes!) {
+      const v = bounds([ventHole(b)!]);
+      const overlaps = v.minX < box.maxX && v.maxX > box.minX && v.minY < box.maxY && v.maxY > box.minY;
+      expect(overlaps).toBe(false);
+    }
+  });
+
+  it('is optional', () => {
+    const config = exampleConfig();
+    const result = generateFromConfig({ ...config, drawers: config.drawers.map((d) => ({ ...d, vent: undefined })) });
+    expect(result.boxes!.every((b) => ventHole(b) === undefined)).toBe(true);
+    expect(backOf(result).labelBox).toBeUndefined();
+  });
+
+  it('reports a vent that does not fit the opening', () => {
+    const config = exampleConfig();
+    config.drawers[0].vent = { shape: 'circle', width: 500, height: 20 };
+    const result = generateFromConfig(config);
+    expect(result.errors.join('\n')).toMatch(/vent \(500 × 20 mm\) does not fit the opening/);
   });
 });
 

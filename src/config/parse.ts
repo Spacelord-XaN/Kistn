@@ -4,6 +4,7 @@ import {
   DEFAULT_EXPORT,
   DEFAULT_HANDLE_WIDTH,
   DEFAULT_MATERIAL,
+  DEFAULT_VENT_WIDTH,
   DrawerDef,
   HandleDef,
 } from './types';
@@ -139,11 +140,17 @@ function parseCompartments(el: Element, errors: Errors, label: string): Compartm
 const HANDLE_SHAPES = ['Circle', 'Rectangle', 'None'];
 
 /**
- * Reads a <Handle>. Attributes left out are taken from `base` (the cabinet-wide
- * handle) when given. Returns undefined for Shape="None".
+ * Reads a <Handle> or <Vent>. Attributes left out are taken from `base` (the
+ * cabinet-wide one) when given. Returns undefined for Shape="None".
  */
-function parseHandle(el: Element, base: HandleDef | undefined, errors: Errors, label: string): HandleDef | undefined {
-  const lbl = `${label} <Handle>`;
+function parseHole(
+  el: Element,
+  base: HandleDef | undefined,
+  defaultWidth: number,
+  errors: Errors,
+  label: string,
+): HandleDef | undefined {
+  const lbl = `${label} <${el.tagName}>`;
   checkAttributes(el, ['Shape', 'Width', 'Height', 'Offset'], errors);
   for (const c of childElements(el)) errors.add(`${lbl}: unexpected element <${c.tagName}>`);
   const rawShape = el.getAttribute('Shape');
@@ -157,7 +164,7 @@ function parseHandle(el: Element, base: HandleDef | undefined, errors: Errors, l
     if (match === 'None') return undefined;
     shape = match.toLowerCase() as HandleDef['shape'];
   }
-  const width = numberAttr(el, 'Width', errors, { def: base?.width ?? DEFAULT_HANDLE_WIDTH, min: 1, label: lbl });
+  const width = numberAttr(el, 'Width', errors, { def: base?.width ?? defaultWidth, min: 1, label: lbl });
   const height = numberAttr(el, 'Height', errors, { def: base?.height ?? width, min: 1, label: lbl });
   const offset = el.hasAttribute('Offset') ? numberAttr(el, 'Offset', errors, { min: 0, label: lbl }) : base?.offset;
   return { shape, width, height, offset };
@@ -188,8 +195,8 @@ export function parseConfig(xml: string, parser: DOMParser = new DOMParser()): P
   const depth = numberAttr(root, 'Depth', errors, { min: 1 });
 
   for (const c of childElements(root)) {
-    if (!['Material', 'Handle', 'Grid', 'Export'].includes(c.tagName)) {
-      errors.add(`<Cabinet>: unexpected element <${c.tagName}> (allowed: Material, Handle, Grid, Export)`);
+    if (!['Material', 'Handle', 'Vent', 'Grid', 'Export'].includes(c.tagName)) {
+      errors.add(`<Cabinet>: unexpected element <${c.tagName}> (allowed: Material, Handle, Vent, Grid, Export)`);
     }
   }
 
@@ -215,7 +222,9 @@ export function parseConfig(xml: string, parser: DOMParser = new DOMParser()): P
   }
 
   const handleEl = childElements(root, 'Handle')[0];
-  const handle = handleEl ? parseHandle(handleEl, undefined, errors, '<Cabinet>') : undefined;
+  const handle = handleEl ? parseHole(handleEl, undefined, DEFAULT_HANDLE_WIDTH, errors, '<Cabinet>') : undefined;
+  const ventEl = childElements(root, 'Vent')[0];
+  const vent = ventEl ? parseHole(ventEl, undefined, DEFAULT_VENT_WIDTH, errors, '<Cabinet>') : undefined;
 
   const gridEl = childElements(root, 'Grid')[0];
   let rows: number[] | undefined = [1];
@@ -242,11 +251,12 @@ export function parseConfig(xml: string, parser: DOMParser = new DOMParser()): P
         rowSpan: numberAttr(el, 'RowSpan', errors, { def: 1, min: 1, integer: true, label }),
         colSpan: numberAttr(el, 'ColumnSpan', errors, { def: 1, min: 1, integer: true, label }),
         handle: hasDrawer ? handle : undefined,
+        vent: hasDrawer ? vent : undefined,
         drawer: hasDrawer,
         implicit: false,
       };
       for (const c of childElements(el)) {
-        if (c.tagName !== 'Compartments' && c.tagName !== 'Handle') {
+        if (!['Compartments', 'Handle', 'Vent'].includes(c.tagName)) {
           errors.add(`${label}: unexpected element <${c.tagName}>`);
         } else if (!hasDrawer) {
           errors.add(`${label}: <${c.tagName}> is not allowed with Drawer="False"`);
@@ -255,7 +265,9 @@ export function parseConfig(xml: string, parser: DOMParser = new DOMParser()): P
       const compEl = childElements(el, 'Compartments')[0];
       if (compEl) drawer.compartments = parseCompartments(compEl, errors, label);
       const drawerHandleEl = childElements(el, 'Handle')[0];
-      if (drawerHandleEl) drawer.handle = parseHandle(drawerHandleEl, handle, errors, label);
+      if (drawerHandleEl) drawer.handle = parseHole(drawerHandleEl, handle, DEFAULT_HANDLE_WIDTH, errors, label);
+      const drawerVentEl = childElements(el, 'Vent')[0];
+      if (drawerVentEl) drawer.vent = parseHole(drawerVentEl, vent, DEFAULT_VENT_WIDTH, errors, label);
       drawers.push(drawer);
     });
   }
@@ -300,6 +312,7 @@ export function parseConfig(xml: string, parser: DOMParser = new DOMParser()): P
           rowSpan: 1,
           colSpan: 1,
           handle: drawersDefault ? handle : undefined,
+          vent: drawersDefault ? vent : undefined,
           drawer: drawersDefault,
           implicit: true,
         });

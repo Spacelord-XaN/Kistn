@@ -59,6 +59,51 @@ describe('parseConfig', () => {
     expect(errors.join('\n')).toMatch(/"Width" must be at least 1/);
   });
 
+  it('applies the cabinet vent to all drawers and merges per-drawer overrides', () => {
+    const { config, errors } = parse(`
+      <Cabinet Width="300" Height="200" Depth="150">
+        <Vent Width="15" />
+        <Grid Rows="*,*,*,*" Columns="*">
+          <Drawer Row="0"><Vent Shape="Rectangle" Height="10" /></Drawer>
+          <Drawer Row="1"><Vent Shape="None" /></Drawer>
+          <Drawer Row="2" Drawer="False" />
+        </Grid>
+      </Cabinet>`);
+    expect(errors).toEqual([]);
+    const [d0, d1, d2, d3] = config!.drawers;
+    expect(d0.vent).toEqual({ shape: 'rectangle', width: 15, height: 10, offset: undefined });
+    expect(d1.vent).toBeUndefined();
+    // Open slots don't inherit the cabinet vent.
+    expect(d2.vent).toBeUndefined();
+    expect(d3.implicit).toBe(true);
+    expect(d3.vent).toEqual({ shape: 'circle', width: 15, height: 15, offset: undefined });
+  });
+
+  it('has no vent by default; a lone per-drawer vent is a centred 20 mm circle', () => {
+    const { config, errors } = parse(`
+      <Cabinet Width="300" Height="200" Depth="150">
+        <Grid Rows="*,*" Columns="*"><Drawer Row="0"><Vent /></Drawer></Grid>
+      </Cabinet>`);
+    expect(errors).toEqual([]);
+    expect(config!.drawers[0].vent).toEqual({ shape: 'circle', width: 20, height: 20, offset: undefined });
+    expect(config!.drawers[1].vent).toBeUndefined();
+  });
+
+  it('reports bad vents and vents in open slots', () => {
+    const { errors } = parse(`
+      <Cabinet Width="300" Height="200" Depth="150">
+        <Vent Shape="Hexagon" />
+        <Grid Rows="*,*" Columns="*">
+          <Drawer Row="0"><Vent Diameter="20" /></Drawer>
+          <Drawer Row="1" Drawer="False"><Vent /></Drawer>
+        </Grid>
+      </Cabinet>`);
+    expect(errors).toHaveLength(3);
+    expect(errors.join('\n')).toMatch(/<Cabinet> <Vent>: "Shape" must be one of Circle, Rectangle, None, got "Hexagon"/);
+    expect(errors.join('\n')).toMatch(/<Vent>: unknown attribute "Diameter"/);
+    expect(errors.join('\n')).toMatch(/<Vent> is not allowed with Drawer="False"/);
+  });
+
   it('has drawers by default; Drawers on <Grid> sets the default and Drawer overrides it', () => {
     expect(parse(`<Cabinet Width="300" Height="200" Depth="150" />`).config!.drawers[0].drawer).toBe(true);
     const { config, errors } = parse(`

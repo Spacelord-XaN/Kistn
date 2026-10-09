@@ -29,6 +29,12 @@ export interface HandleDef {
   offset?: number;
 }
 
+/**
+ * Air hole cut into the cabinet back behind a drawer, so the drawer slides
+ * without suction. Offset is measured from the top of the opening.
+ */
+export type VentDef = HandleDef;
+
 export interface DrawerDef {
   row: number;
   col: number;
@@ -37,6 +43,8 @@ export interface DrawerDef {
   compartments?: CompartmentDef;
   /** Handle hole in the front; undefined = none. */
   handle?: HandleDef;
+  /** Vent hole in the cabinet back behind the drawer; undefined = none. */
+  vent?: VentDef;
   /** False = open slot: the opening stays, but no drawer box is generated. */
   drawer: boolean;
   /** True when generated for a cell not covered by any <Drawer>. */
@@ -68,6 +76,7 @@ export const DEFAULT_MATERIAL: Material = {
 };
 
 export const DEFAULT_HANDLE_WIDTH = 30;
+export const DEFAULT_VENT_WIDTH = 20;
 
 export const DEFAULT_EXPORT: ExportSettings = {
   spacing: 5,

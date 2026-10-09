@@ -94,6 +94,12 @@ export function bounds(polys: Polygon[]): Bounds {
   return b;
 }
 
+/** The taller of the full-width bands of `box` above and below `hole`. */
+export function bandBeside(box: Bounds, hole: Polygon): Bounds {
+  const b = bounds([hole]);
+  return box.maxY - b.maxY >= b.minY - box.minY ? { ...box, minY: b.maxY } : { ...box, maxY: b.minY };
+}
+
 export function translate(poly: Polygon, dx: number, dy: number): Polygon {
   return poly.map((p) => ({ x: p.x + dx, y: p.y + dy }));
 }

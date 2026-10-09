@@ -1,6 +1,6 @@
-import { CabinetConfig } from '../config/types';
+import { CabinetConfig, HandleDef } from '../config/types';
 import { EdgeSpec, buildPanel, Part } from '../geometry/panel';
-import { bounds, Polygon, rect } from '../geometry/path';
+import { bandBeside, Bounds, bounds, Polygon, rect } from '../geometry/path';
 import { CabinetLayout, DrawerOpening } from '../layout/grid';
 import { compartmentParts } from './compartments';
 
@@ -44,22 +44,40 @@ export function innerVolume(box: DrawerBox, dt: number): number {
 }
 
 const ELLIPSE_SEGMENTS = 48;
-/** Minimum material left around the handle hole (mm). */
-const HANDLE_MARGIN = 2;
+/** Minimum material left around handle and vent holes (mm). */
+const HOLE_MARGIN = 2;
+
+/** A handle or vent hole of the given shape, centred at (cx, cy). */
+function holePolygon(def: HandleDef, cx: number, cy: number): Polygon {
+  const rx = def.width / 2;
+  const ry = def.height / 2;
+  if (def.shape === 'rectangle') return rect(cx - rx, cy - ry, cx + rx, cy + ry);
+  return Array.from({ length: ELLIPSE_SEGMENTS }, (_, i) => {
+    const phi = (2 * Math.PI * i) / ELLIPSE_SEGMENTS;
+    return { x: cx + rx * Math.cos(phi), y: cy + ry * Math.sin(phi) };
+  });
+}
 
 /** The handle hole in the front panel's frame (x right, y down from the open top edge). */
 export function handleHole(box: DrawerBox): Polygon | undefined {
   const handle = box.opening.def.handle;
   if (!handle) return undefined;
-  const cx = box.width / 2;
-  const cy = handle.offset ?? box.height / 2;
-  const rx = handle.width / 2;
-  const ry = handle.height / 2;
-  if (handle.shape === 'rectangle') return rect(cx - rx, cy - ry, cx + rx, cy + ry);
-  return Array.from({ length: ELLIPSE_SEGMENTS }, (_, i) => {
-    const phi = (2 * Math.PI * i) / ELLIPSE_SEGMENTS;
-    return { x: cx + rx * Math.cos(phi), y: cy + ry * Math.sin(phi) };
-  });
+  return holePolygon(handle, box.width / 2, handle.offset ?? box.height / 2);
+}
+
+/** The vent hole behind the drawer, in the cabinet back's frame (cabinet x and y). */
+export function ventHole(box: DrawerBox): Polygon | undefined {
+  const vent = box.opening.def.vent;
+  if (!vent) return undefined;
+  const { x0, x1, y0, y1 } = box.opening;
+  return holePolygon(vent, (x0 + x1) / 2, y0 + (vent.offset ?? (y1 - y0) / 2));
+}
+
+/** Whether the hole stays at least HOLE_MARGIN inside the area. */
+function holeFits(hole: Polygon, area: Bounds): boolean {
+  const b = bounds([hole]);
+  const m = HOLE_MARGIN;
+  return b.minX >= area.minX + m && b.maxX <= area.maxX - m && b.minY >= area.minY + m && b.maxY <= area.maxY - m;
 }
 
 export function validateDrawer(config: CabinetConfig, box: DrawerBox): string[] {
@@ -70,13 +88,16 @@ export function validateDrawer(config: CabinetConfig, box: DrawerBox): string[] 
     return errors;
   }
   const hole = handleHole(box);
-  if (hole) {
-    const b = bounds([hole]);
-    const m = HANDLE_MARGIN;
-    if (b.minX < dt + m || b.maxX > box.width - dt - m || b.minY < m || b.maxY > box.height - dt - m) {
-      const { width, height } = box.opening.def.handle!;
-      errors.push(`${box.name}: handle (${width} × ${height} mm) does not fit the front`);
-    }
+  if (hole && !holeFits(hole, { minX: dt, maxX: box.width - dt, minY: 0, maxY: box.height - dt })) {
+    const { width, height } = box.opening.def.handle!;
+    errors.push(`${box.name}: handle (${width} × ${height} mm) does not fit the front`);
+  }
+  // The margin keeps the vent clear of the shelf/divider slots around the opening.
+  const vent = ventHole(box);
+  const { x0, x1, y0, y1 } = box.opening;
+  if (vent && !holeFits(vent, { minX: x0, maxX: x1, minY: y0, maxY: y1 })) {
+    const { width, height } = box.opening.def.vent!;
+    errors.push(`${box.name}: vent (${width} × ${height} mm) does not fit the opening`);
   }
   return errors;
 }
@@ -102,9 +123,7 @@ export function drawerParts(config: CabinetConfig, box: DrawerBox): Part[] {
   const front = frontBack('Front', 'F', hole ? [hole] : []);
   if (hole) {
     // Keep the engraved code off the hole: use the taller band above or below it.
-    const b = bounds([hole]);
-    const [minY, maxY] = h - dt - b.maxY >= b.minY ? [b.maxY, h - dt] : [0, b.minY];
-    front.labelBox = { minX: dt, maxX: w - dt, minY, maxY };
+    front.labelBox = bandBeside({ minX: dt, maxX: w - dt, minY: 0, maxY: h - dt }, hole);
   }
 
   // Side frame: x = z, y = y. Edges: top(open), back, bottom, front.
