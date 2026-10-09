@@ -12,6 +12,8 @@ To release:
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-09
+
 ### Added
 
 - Optional vent hole in the cabinet back behind each drawer, so air can flow and drawers slide in and out without suction: `<Vent Shape="Circle|Rectangle|None" Width Height Offset />` under `<Cabinet>` sets it for all drawers, a `<Vent>` inside a `<Drawer>` overrides it. Open slots get no vent. The preview shows each vent as a dashed outline on the drawer front.
