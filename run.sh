@@ -1,5 +1,5 @@
 #!/bin/sh
-# Starts the BoxGen dev server. Loads nvm if node isn't already on PATH.
+# Starts the Kistn dev server. Loads nvm if node isn't already on PATH.
 set -e
 cd "$(dirname "$0")"
 if ! command -v npm >/dev/null 2>&1; then

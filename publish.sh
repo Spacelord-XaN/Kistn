@@ -1,8 +1,8 @@
 #!/bin/sh
-# Builds BoxGen and publishes the static site into a web server directory.
+# Builds Kistn and publishes the static site into a web server directory.
 # Usage: ./publish.sh <target-dir> [base-path]
-#   target-dir  directory your web server serves, e.g. /var/www/boxgen
-#   base-path   URL path the app is served under (default /), e.g. /boxgen/
+#   target-dir  directory your web server serves, e.g. /var/www/kistn
+#   base-path   URL path the app is served under (default /), e.g. /kistn/
 set -e
 
 if [ -z "$1" ]; then

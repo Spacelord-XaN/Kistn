@@ -8,10 +8,22 @@ import { layoutParts, sheetToSvg } from './export/svg';
 import { renderChangelog } from './changelog';
 import changelog from '../CHANGELOG.md?raw';
 
-const STORAGE_KEY = 'boxgen.xml';
-const INSIDE_DIMS_KEY = 'boxgen.insideDims';
-const VOLUME_KEY = 'boxgen.showVolume';
+const STORAGE_KEY = 'kistn.xml';
+const INSIDE_DIMS_KEY = 'kistn.insideDims';
+const VOLUME_KEY = 'kistn.showVolume';
 const UPDATE_DELAY_MS = 250;
+
+// Carry over what was saved under the old BoxGen keys.
+try {
+  for (const key of [STORAGE_KEY, INSIDE_DIMS_KEY, VOLUME_KEY]) {
+    const oldKey = key.replace(/^kistn\./, 'boxgen.');
+    const old = localStorage.getItem(oldKey);
+    if (old !== null && localStorage.getItem(key) === null) localStorage.setItem(key, old);
+    localStorage.removeItem(oldKey);
+  }
+} catch {
+  // Storage unavailable — nothing to migrate.
+}
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const previewEl = $('preview');
@@ -117,7 +129,7 @@ fileInput.addEventListener('change', async () => {
   fileInput.value = '';
 });
 
-$('save').addEventListener('click', () => download('boxgen.xml', view.state.doc.toString(), 'application/xml'));
+$('save').addEventListener('click', () => download('kistn.xml', view.state.doc.toString(), 'application/xml'));
 
 $('example').addEventListener('click', () => {
   if (view.state.doc.toString() === EXAMPLE_XML || confirm('Replace the current config with the example?')) {
@@ -129,7 +141,7 @@ exportBtn.addEventListener('click', () => {
   const { cutGroups, config, layout, boxes } = current;
   if (!cutGroups || !config || !layout || !boxes) return;
   const sheet = layoutParts(cutGroups, config.export.spacing);
-  download('boxgen.svg', sheetToSvg(sheet, layout, boxes), 'image/svg+xml');
+  download('kistn.svg', sheetToSvg(sheet, layout, boxes), 'image/svg+xml');
 });
 
 function persistOption(input: HTMLInputElement, key: string) {

@@ -4,13 +4,17 @@ Format: https://keepachangelog.com — versions follow https://semver.org.
 
 To release:
   1. Move the Unreleased entries under "## [x.y.z] - YYYY-MM-DD" and commit.
-  2. git tag -a vx.y.z -m "BoxGen x.y.z"
+  2. git tag -a vx.y.z -m "Kistn x.y.z"
   3. ./publish.sh <target-dir> — the build takes its version from the tag.
 -->
 
 # Changelog
 
 ## [Unreleased]
+
+### Changed
+
+- Renamed from BoxGen to Kistn. Saved and exported files are now called `kistn.xml` and `kistn.svg`.
 
 ## [0.2.2] - 2026-10-09
 
